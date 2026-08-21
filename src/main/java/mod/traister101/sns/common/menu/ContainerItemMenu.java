@@ -1,9 +1,10 @@
 package mod.traister101.sns.common.menu;
 
 import com.google.common.base.Supplier;
+import mod.traister101.esc.common.menu.ExtendedSlotCapacityMenu;
+import mod.traister101.esc.common.slot.ExtendedSlotItemHandler;
 import mod.traister101.sns.common.items.ContainerItem;
 import mod.traister101.sns.util.ItemSlotData.*;
-import mod.traister101.sns.util.items.ExtendedSlotItemHandler;
 
 import net.minecraft.world.entity.player.*;
 import net.minecraft.world.inventory.*;
@@ -120,10 +121,9 @@ public class ContainerItemMenu extends ExtendedSlotCapacityMenu {
 			case 8 -> addSlots(handler, 2, 4, 53, 23);
 			case 18 -> addSlots(handler, 2, 9, 8, 23);
 			default -> {
-				// We want to round up, integer math rounds down
-				final int rows = (int) Math.ceil((double) containerSlots / 9);
+				final int rows = Math.ceilDiv(containerSlots, 9);
 				assert rows > 0 : "Rows must be at least 1";
-				final int columns = containerSlots / rows;
+				final int columns = containerSlots - (rows - 1) * 9;
 				addSlots(handler, rows, columns);
 			}
 		}
@@ -165,7 +165,7 @@ public class ContainerItemMenu extends ExtendedSlotCapacityMenu {
 		for (int column = 0; column < columns; column++) {
 			final int yPosition = 18 * (rows - 1) + 18;
 			final int xPosition = 8 + column * 18;
-			final int index = column + (rows - 1) * columns;
+			final int index = column + (rows - 1) * 9;
 			addSlot(new ExtendedSlotItemHandler(handler, index, xPosition, yPosition));
 		}
 	}

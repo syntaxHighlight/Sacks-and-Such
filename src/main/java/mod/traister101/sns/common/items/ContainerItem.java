@@ -200,14 +200,13 @@ public class ContainerItem extends Item implements IItemSize {
 					height = 2;
 				}
 				default -> {
-					// We want to round up, integer math rounds down
-					width = (int) Math.ceil((double) slotCount / 9);
-					height = slotCount / width;
+					width = Math.min(9, slotCount);
+					height = Math.ceilDiv(slotCount, width);
 				}
 			}
 		final List<ItemStack> contents = new ArrayList<>(slotCount);
 		for (int slot = 0; slot < slotCount; slot++) contents.add(handler.getStackInSlot(slot));
-		return Optional.of(new TooltipBlock.Instance(contents, width, height));
+		return TooltipBlock.buildInventoryTooltip(contents, width, height);
 	}
 
 	@Override

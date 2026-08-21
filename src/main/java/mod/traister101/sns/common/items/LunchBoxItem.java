@@ -99,9 +99,8 @@ public class LunchBoxItem extends ContainerItem {
 					height = 2;
 				}
 				default -> {
-					// We want to round up, integer math rounds down
-					width = (int) Math.ceil((double) itemHandler.getSlots() / 9);
-					height = itemHandler.getSlots() / width;
+					width = Math.min(9, itemHandler.getSlots());
+					height = Math.ceilDiv(itemHandler.getSlots(), width);
 				}
 			}
 

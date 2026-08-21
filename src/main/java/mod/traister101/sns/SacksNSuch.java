@@ -6,6 +6,7 @@ import mod.traister101.sns.common.SNSCreativeTab;
 import mod.traister101.sns.common.attribute.SNSAttributes;
 import mod.traister101.sns.common.capability.LunchboxFoodTrait;
 import mod.traister101.sns.common.capability.SNSCapabilities;
+import mod.traister101.sns.common.component.SNSDataComponents;
 import mod.traister101.sns.common.items.SNSItems;
 import mod.traister101.sns.common.menu.SNSMenus;
 import mod.traister101.sns.config.SNSConfig;
@@ -37,6 +38,7 @@ public final class SacksNSuch {
 		modBus.addListener(SNSPacketHandler::register);
 
 		SNSItems.ITEMS.register(modBus);
+		SNSDataComponents.DATA_COMPONENTS.register(modBus);
 		SNSMenus.MENUS.register(modBus);
 		SNSCreativeTab.CREATIVE_TABS.register(modBus);
 		SNSAttributes.ATTRIBUTES.register(modBus);
