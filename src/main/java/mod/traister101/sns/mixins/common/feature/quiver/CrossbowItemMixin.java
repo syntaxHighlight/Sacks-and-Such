@@ -13,6 +13,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 
 @Mixin(CrossbowItem.class)
+@SuppressWarnings("deprecation")
 public class CrossbowItemMixin {
 
 	/**

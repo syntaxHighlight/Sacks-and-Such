@@ -28,8 +28,9 @@ public abstract class HorseInventoryMenuMixin extends AbstractContainerMenu {
 	 */
 	@Inject(method = "<init>", at = @At(value = "TAIL"))
 	private void addHorseshoesSlot(final int id, final Inventory inventory, final Container container, final AbstractHorse horse,
-			final CallbackInfo ci) {
-		final Slot horseshoeSlot = this.addSlot(new Slot(container, HorseshoesItem.getHorseshoesSlot(horse), 8, (horse.canWearArmor() ? 54 : 36)) {
+			final int columns, final CallbackInfo ci) {
+		final Slot horseshoeSlot = this.addSlot(new Slot(container, HorseshoesItem.getHorseshoesSlot(horse), 8,
+				(horse.canUseSlot(net.minecraft.world.entity.EquipmentSlot.BODY) ? 54 : 36)) {
 
 			@Override
 			public boolean mayPlace(final ItemStack itemStack) {
@@ -56,9 +57,8 @@ public abstract class HorseInventoryMenuMixin extends AbstractContainerMenu {
 	 * @author Traister101
 	 */
 	@Definition(id = "moveItemStackTo", method = "Lnet/minecraft/world/inventory/HorseInventoryMenu;moveItemStackTo(Lnet/minecraft/world/item/ItemStack;IIZ)Z")
-	@Expression(value = "? <= @(2)", id = "test")
 	@Expression(value = "this.moveItemStackTo(?, @(2), ?, false)", id = "moveStack")
-	@ModifyExpressionValue(method = "quickMoveStack", at = {@At(value = "MIXINEXTRAS:EXPRESSION", id = "test"), @At(value = "MIXINEXTRAS:EXPRESSION", id = "moveStack")})
+	@ModifyExpressionValue(method = "quickMoveStack", at = @At(value = "MIXINEXTRAS:EXPRESSION", id = "moveStack"))
 	private int accountForHorseshoesSlot(final int value) {
 		return value + 1;
 	}

@@ -19,10 +19,10 @@ import net.minecraft.world.entity.projectile.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
-import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.items.wrapper.PlayerMainInvWrapper;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.wrapper.PlayerMainInvWrapper;
 
 @Mixin(AbstractArrow.class)
 public abstract class AbstractArrowMixin extends Projectile {
@@ -33,9 +33,11 @@ public abstract class AbstractArrowMixin extends Projectile {
 
 	@Shadow
 	protected abstract ItemStack getPickupItem();
+	@Shadow
+	protected abstract void setPickupItemStack(ItemStack pickupItemStack);
 
 	/**
-	 * @reason Arrows are annoying and don't fire an event like {@link ItemEntity}s do. {@link PickupHandler#onPickupItem(EntityItemPickupEvent)}
+	 * @reason Arrows are annoying and don't fire an event like {@link ItemEntity}s do. {@link PickupHandler#onPickupItem(ItemEntityPickupEvent.Pre)}
 	 * handles the item entity case automatically
 	 * @author Traister101
 	 */
@@ -62,9 +64,9 @@ public abstract class AbstractArrowMixin extends Projectile {
 		}
 
 		// Merge with arrows already in the inventory first
-		final var inventoryRemainder = SNSUtils.insertItemOnlyStacked(playerHandler, pickupItem);
+		ItemStack remainder = SNSUtils.insertItemOnlyStacked(playerHandler, pickupItem);
 
-		if (inventoryRemainder.isEmpty()) {
+		if (remainder.isEmpty()) {
 			cir.setReturnValue(true);
 			return;
 		}
@@ -74,15 +76,23 @@ public abstract class AbstractArrowMixin extends Projectile {
 				final var quiverStack = quiverSlot.getStack();
 				if (!quiverStack.is(SNSItems.QUIVER.get())) continue;
 
-				final var maybeItemHandler = quiverStack.getCapability(ForgeCapabilities.ITEM_HANDLER).resolve();
-				if (maybeItemHandler.isEmpty()) continue;
+				final var itemHandler = quiverStack.getCapability(Capabilities.ItemHandler.ITEM);
+				if (itemHandler == null) continue;
 
-				final ItemStack remainder = ItemHandlerHelper.insertItemStacked(maybeItemHandler.get(), inventoryRemainder, false);
+				remainder = ItemHandlerHelper.insertItemStacked(itemHandler, remainder, false);
 				if (!remainder.isEmpty()) continue;
 
 				cir.setReturnValue(true);
 				return;
 			}
+		}
+
+		player.getInventory().add(remainder);
+		if (remainder.isEmpty()) {
+			cir.setReturnValue(true);
+		} else {
+			setPickupItemStack(remainder.copy());
+			cir.setReturnValue(false);
 		}
 	}
 }

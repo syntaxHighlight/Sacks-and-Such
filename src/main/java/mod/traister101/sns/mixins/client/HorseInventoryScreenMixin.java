@@ -17,7 +17,7 @@ import net.minecraft.world.inventory.HorseInventoryMenu;
 public abstract class HorseInventoryScreenMixin extends AbstractContainerScreen<HorseInventoryMenu> {
 
 	@Unique
-	private static final ResourceLocation SNS$_HORSESHOE_SLOT_TEXTURE = new ResourceLocation(SacksNSuch.MODID, "textures/gui/horshoeslot.png");
+	private static final ResourceLocation SNS$_HORSESHOE_SLOT_TEXTURE = SacksNSuch.location("textures/gui/horshoeslot.png");
 	@Shadow
 	@Final
 	private AbstractHorse horse;
@@ -30,12 +30,13 @@ public abstract class HorseInventoryScreenMixin extends AbstractContainerScreen<
 	 * @reason We don't want to mess with the actual horse inventory screen texture so we draw the slot from its own texture
 	 * @author Traister101
 	 */
-	@Inject(method = "renderBg", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/InventoryScreen;renderEntityInInventoryFollowsMouse(Lnet/minecraft/client/gui/GuiGraphics;IIIFFLnet/minecraft/world/entity/LivingEntity;)V"))
+	@Inject(method = "renderBg", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/InventoryScreen;renderEntityInInventoryFollowsMouse(Lnet/minecraft/client/gui/GuiGraphics;IIIIIFFFLnet/minecraft/world/entity/LivingEntity;)V"))
 	public void drawHorseshoesSlot(final GuiGraphics guiGraphics, final float partialTick, final int mouseX, final int mouseY,
 			final CallbackInfo ci) {
 		final int slotX = (this.width - this.imageWidth) / 2;
 		final int slotY = (this.height - this.imageHeight) / 2;
 
-		guiGraphics.blit(SNS$_HORSESHOE_SLOT_TEXTURE, slotX + 7, slotY + (horse.canWearArmor() ? 53 : 35), 0, 0, 18, 18, 18, 18);
+		guiGraphics.blit(SNS$_HORSESHOE_SLOT_TEXTURE, slotX + 7,
+				slotY + (horse.canUseSlot(net.minecraft.world.entity.EquipmentSlot.BODY) ? 53 : 35), 0, 0, 18, 18, 18, 18);
 	}
 }

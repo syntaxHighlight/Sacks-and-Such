@@ -4,7 +4,6 @@ import com.llamalad7.mixinextras.expression.*;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.sugar.Local;
 import mod.traister101.sns.common.SNSItemTags;
-import mod.traister101.sns.common.items.SNSItems;
 import mod.traister101.sns.util.SNSUtils;
 import mod.traister101.sns.util.items.*;
 import net.dries007.tfc.common.items.JavelinItem;
@@ -14,16 +13,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import net.minecraft.world.entity.player.*;
 import net.minecraft.world.item.*;
 
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-
-import java.util.Optional;
-
 @Mixin(value = JavelinItem.class)
 public abstract class JavelinItemMixin extends SwordItem {
 
 	public JavelinItemMixin(final Tier pTier, final int pAttackDamageModifier, final float pAttackSpeedModifier, final Properties pProperties) {
-		super(pTier, pAttackDamageModifier, pAttackSpeedModifier, pProperties);
+		super(pTier, pProperties);
 	}
 
 	/**

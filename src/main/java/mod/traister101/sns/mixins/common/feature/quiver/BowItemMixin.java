@@ -13,11 +13,26 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 
-import net.minecraftforge.event.entity.living.LivingGetProjectileEvent;
-import net.minecraftforge.event.entity.player.ArrowLooseEvent;
+import net.neoforged.neoforge.event.entity.living.LivingGetProjectileEvent;
+import net.neoforged.neoforge.event.entity.player.ArrowLooseEvent;
 
 @Mixin(BowItem.class)
+@SuppressWarnings("deprecation")
 public class BowItemMixin {
+
+	@Definition(id = "getProjectile", method = "Lnet/minecraft/world/entity/player/Player;getProjectile(Lnet/minecraft/world/item/ItemStack;)Lnet/minecraft/world/item/ItemStack;")
+	@Definition(id = "isEmpty", method = "Lnet/minecraft/world/item/ItemStack;isEmpty()Z")
+	@Expression("?.getProjectile(?).isEmpty()")
+	@ModifyExpressionValue(method = "use", at = @At("MIXINEXTRAS:EXPRESSION"))
+	private boolean findProjectileInQuiver(final boolean projectileMissing, final @Local(argsOnly = true) Player player,
+			final @Local(argsOnly = true) InteractionHand hand) {
+		if (!projectileMissing) return false;
+
+		final var bow = player.getItemInHand(hand);
+		if (!(bow.getItem() instanceof final ProjectileWeaponItem projectileWeaponItem)) return true;
+
+		return SNSUtils.findFirstSlotInQuiver(player, projectileWeaponItem.getAllSupportedProjectiles(bow)).isEmpty();
+	}
 
 	/**
 	 * @reason The Forge {@link LivingGetProjectileEvent} doesn't work for us because it's fired twice in the
@@ -35,6 +50,6 @@ public class BowItemMixin {
 
 		if (!(bow.getItem() instanceof final ProjectileWeaponItem projectileWeaponItem)) return originalProjectile;
 
-		return SNSUtils.extractProjectileFromQuiver(player, projectileWeaponItem.getAllSupportedProjectiles()).orElse(originalProjectile);
+		return SNSUtils.extractProjectileFromQuiver(player, projectileWeaponItem.getAllSupportedProjectiles(bow)).orElse(originalProjectile);
 	}
 }
