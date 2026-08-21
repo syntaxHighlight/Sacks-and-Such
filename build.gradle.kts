@@ -218,12 +218,10 @@ dependencies {
     }
 
     implementation(libs.extendedSlotCapacity)
-    if (!file("../ExtendedSlotCapacity").isDirectory) {
-        jarJar(libs.extendedSlotCapacity) {
-            version {
-                strictly("[${libs.versions.extendedSlotCapacity.get()},)")
-                prefer(libs.versions.extendedSlotCapacity.get())
-            }
+    jarJar(libs.extendedSlotCapacity) {
+        version {
+            strictly("[${libs.versions.extendedSlotCapacity.get()},)")
+            prefer(libs.versions.extendedSlotCapacity.get())
         }
     }
 
