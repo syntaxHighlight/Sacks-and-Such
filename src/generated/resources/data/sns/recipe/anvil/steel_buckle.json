@@ -1,0 +1,17 @@
+{
+  "type": "tfc:anvil",
+  "apply_bonus": true,
+  "ingredient": {
+    "item": "tfc:metal/ingot/steel"
+  },
+  "result": {
+    "count": 1,
+    "id": "sns:buckle"
+  },
+  "rules": [
+    "punch_last",
+    "punch_last",
+    "punch_last"
+  ],
+  "tier": 4
+}

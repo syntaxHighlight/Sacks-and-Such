@@ -1,0 +1,13 @@
+{
+  "type": "tfc:loom",
+  "ingredient": {
+    "count": 16,
+    "item": "sns:reinforced_fiber"
+  },
+  "result": {
+    "count": 1,
+    "id": "sns:reinforced_fabric"
+  },
+  "steps": 16,
+  "texture": "sns:loom/reinforced_fabric"
+}

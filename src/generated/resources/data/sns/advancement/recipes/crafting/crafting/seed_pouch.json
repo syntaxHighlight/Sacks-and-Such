@@ -1,0 +1,65 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_burlap_cloth": {
+      "conditions": {
+        "items": [
+          {
+            "items": "tfc:burlap_cloth"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_sewing_needle": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#tfc:sewing_needles"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_string": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:strings"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "sns:crafting/seed_pouch"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_wool_cloth": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#tfc:high_quality_cloth"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_string",
+      "has_wool_cloth",
+      "has_burlap_cloth",
+      "has_sewing_needle",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "sns:crafting/seed_pouch"
+    ]
+  }
+}

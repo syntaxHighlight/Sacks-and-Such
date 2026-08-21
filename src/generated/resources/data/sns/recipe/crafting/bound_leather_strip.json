@@ -1,0 +1,28 @@
+{
+  "type": "tfc:advanced_shapeless_crafting",
+  "ingredients": [
+    {
+      "item": "sns:leather_strip"
+    },
+    {
+      "item": "sns:reinforced_fiber"
+    },
+    {
+      "item": "sns:leather_strip"
+    },
+    {
+      "tag": "tfc:sewing_needles"
+    }
+  ],
+  "remainder": {
+    "modifiers": [
+      {
+        "type": "tfc:damage_crafting_remainder"
+      }
+    ]
+  },
+  "result": {
+    "count": 1,
+    "id": "sns:bound_leather_strip"
+  }
+}

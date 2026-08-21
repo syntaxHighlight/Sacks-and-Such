@@ -1,0 +1,15 @@
+{
+  "type": "tfc:knapping",
+  "knapping_type": "tfc:leather",
+  "pattern": [
+    " ### ",
+    "#####",
+    "#####",
+    "#####",
+    " ### "
+  ],
+  "result": {
+    "count": 1,
+    "id": "sns:unfinished_leather_sack"
+  }
+}

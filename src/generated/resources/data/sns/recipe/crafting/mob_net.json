@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "R": {
+      "item": "sns:reinforced_fiber"
+    }
+  },
+  "pattern": [
+    "R R",
+    " R ",
+    "R R"
+  ],
+  "result": {
+    "count": 1,
+    "id": "sns:mob_net"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "J": {
+      "item": "tfc:jute_fiber"
+    },
+    "S": {
+      "tag": "c:strings"
+    }
+  },
+  "pattern": [
+    "JJJ",
+    "SSS",
+    "JJJ"
+  ],
+  "result": {
+    "count": 1,
+    "id": "sns:reinforced_fiber"
+  }
+}

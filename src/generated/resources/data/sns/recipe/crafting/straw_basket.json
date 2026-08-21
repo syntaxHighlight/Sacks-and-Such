@@ -1,0 +1,32 @@
+{
+  "type": "tfc:advanced_shaped_crafting",
+  "input_column": -1,
+  "input_row": -1,
+  "key": {
+    "K": {
+      "tag": "c:tools/knife"
+    },
+    "S": {
+      "item": "tfc:straw"
+    },
+    "T": {
+      "item": "tfc:thatch"
+    }
+  },
+  "pattern": [
+    "SSS",
+    "T T",
+    " TK"
+  ],
+  "remainder": {
+    "modifiers": [
+      {
+        "type": "tfc:damage_crafting_remainder"
+      }
+    ]
+  },
+  "result": {
+    "count": 1,
+    "id": "sns:straw_basket"
+  }
+}

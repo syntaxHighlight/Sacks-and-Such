@@ -1,0 +1,33 @@
+{
+  "parent": "tfc:story/get_straw",
+  "criteria": {
+    "has_straw_basket": {
+      "conditions": {
+        "items": [
+          {
+            "items": "sns:straw_basket"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "sns.advancements.straw_basket.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "sns:straw_basket"
+    },
+    "title": {
+      "translate": "sns.advancements.straw_basket.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_straw_basket"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

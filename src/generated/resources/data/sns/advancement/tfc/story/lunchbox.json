@@ -1,0 +1,34 @@
+{
+  "parent": "tfc:story/iron_age",
+  "criteria": {
+    "has_lunchbox": {
+      "conditions": {
+        "items": [
+          {
+            "items": "sns:lunchbox"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "sns.advancements.lunchbox.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "sns:lunchbox"
+    },
+    "title": {
+      "translate": "sns.advancements.lunchbox.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_lunchbox"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

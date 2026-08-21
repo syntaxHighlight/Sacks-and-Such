@@ -1,0 +1,35 @@
+{
+  "type": "tfc:advanced_shaped_crafting",
+  "input_column": -1,
+  "input_row": -1,
+  "key": {
+    "F": {
+      "item": "sns:reinforced_fabric"
+    },
+    "L": {
+      "item": "sns:bound_leather_strip"
+    },
+    "N": {
+      "tag": "tfc:sewing_needles"
+    },
+    "P": {
+      "item": "sns:pack_frame"
+    }
+  },
+  "pattern": [
+    "LFL",
+    "LPL",
+    " FN"
+  ],
+  "remainder": {
+    "modifiers": [
+      {
+        "type": "tfc:damage_crafting_remainder"
+      }
+    ]
+  },
+  "result": {
+    "count": 1,
+    "id": "sns:frame_pack"
+  }
+}

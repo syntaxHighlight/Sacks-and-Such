@@ -1,0 +1,35 @@
+{
+  "type": "tfc:advanced_shaped_crafting",
+  "input_column": -1,
+  "input_row": -1,
+  "key": {
+    "B": {
+      "item": "tfc:burlap_cloth"
+    },
+    "L": {
+      "tag": "c:leathers"
+    },
+    "N": {
+      "tag": "tfc:sewing_needles"
+    },
+    "R": {
+      "item": "sns:reinforced_fiber"
+    }
+  },
+  "pattern": [
+    "RRR",
+    "LBL",
+    " LN"
+  ],
+  "remainder": {
+    "modifiers": [
+      {
+        "type": "tfc:damage_crafting_remainder"
+      }
+    ]
+  },
+  "result": {
+    "count": 1,
+    "id": "sns:ore_sack"
+  }
+}

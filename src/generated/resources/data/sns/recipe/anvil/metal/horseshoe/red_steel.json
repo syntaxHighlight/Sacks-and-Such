@@ -1,0 +1,16 @@
+{
+  "type": "tfc:anvil",
+  "ingredient": {
+    "tag": "c:rods/red_steel"
+  },
+  "result": {
+    "count": 1,
+    "id": "sns:metal/horseshoe/red_steel"
+  },
+  "rules": [
+    "bend_third_last",
+    "bend_second_last",
+    "upset_last"
+  ],
+  "tier": 6
+}

@@ -1,0 +1,32 @@
+{
+  "type": "tfc:advanced_shaped_crafting",
+  "input_column": -1,
+  "input_row": -1,
+  "key": {
+    "B": {
+      "item": "tfc:burlap_cloth"
+    },
+    "J": {
+      "item": "tfc:jute_fiber"
+    },
+    "N": {
+      "tag": "tfc:sewing_needles"
+    }
+  },
+  "pattern": [
+    "JJJ",
+    "B B",
+    " BN"
+  ],
+  "remainder": {
+    "modifiers": [
+      {
+        "type": "tfc:damage_crafting_remainder"
+      }
+    ]
+  },
+  "result": {
+    "count": 1,
+    "id": "sns:burlap_sack"
+  }
+}
