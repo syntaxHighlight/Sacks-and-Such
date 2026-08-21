@@ -14,7 +14,7 @@ import net.minecraft.world.entity.LivingEntity;
 public class VanillaHikingBootsModel<T extends LivingEntity> extends HumanoidModel<T> {
 
 	// This layer location should be baked with EntityRendererProvider.Context in the entity renderer and passed into this model's constructor
-	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(new ResourceLocation(SacksNSuch.MODID, "vanilla_hikingboots"),
+	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(SacksNSuch.location("vanilla_hikingboots"),
 			"main");
 
 	public VanillaHikingBootsModel(final ModelPart root) {

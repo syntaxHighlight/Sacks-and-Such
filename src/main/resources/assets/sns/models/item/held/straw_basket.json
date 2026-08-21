@@ -1,6 +1,6 @@
 {
   "credit": "Made with Blockbench",
-  "parent": "forge:item/default",
+  "parent": "neoforge:item/default",
   "textures": {
 	"0": "sns:item/held/straw_basket"
   },

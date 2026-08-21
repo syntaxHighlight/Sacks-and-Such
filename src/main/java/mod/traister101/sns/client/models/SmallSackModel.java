@@ -16,7 +16,7 @@ import net.minecraft.util.Mth;
 public class SmallSackModel extends Model {
 
 	// This layer location should be baked with EntityRendererProvider.Context in the entity renderer and passed into this model's constructor
-	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(new ResourceLocation(SacksNSuch.MODID, "smallsackmodel"), "main");
+	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(SacksNSuch.location("smallsackmodel"), "main");
 	private final ModelPart sack;
 
 	public SmallSackModel(final ModelPart root) {
@@ -42,7 +42,7 @@ public class SmallSackModel extends Model {
 
 	@Override
 	public void renderToBuffer(final PoseStack poseStack, final VertexConsumer vertexConsumer, final int packedLight, final int packedOverlay,
-			final float red, final float green, final float blue, final float alpha) {
-		sack.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+			final int color) {
+		sack.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
 	}
 }

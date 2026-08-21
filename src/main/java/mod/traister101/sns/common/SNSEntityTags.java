@@ -2,7 +2,7 @@ package mod.traister101.sns.common;
 
 import mod.traister101.sns.SacksNSuch;
 import mod.traister101.sns.common.items.MobNetItem;
-import net.dries007.tfc.util.Helpers;
+import net.dries007.tfc.common.TFCTags;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -17,7 +17,7 @@ public final class SNSEntityTags {
 	/**
 	 * TFCs livestock entity tag
 	 */
-	public static final TagKey<EntityType<?>> TFC_LIVESTOCK = fromTFC("livestock");
+	public static final TagKey<EntityType<?>> TFC_LIVESTOCK = TFCTags.Entities.FARM_ANIMALS;
 
 	/**
 	 * Mobs which can be captured with our {@link MobNetItem}
@@ -25,12 +25,7 @@ public final class SNSEntityTags {
 	public static final TagKey<EntityType<?>> NETABLE_MOBS = create("netable_mobs");
 
 	@SuppressWarnings("SameParameterValue")
-	private static TagKey<EntityType<?>> fromTFC(final String name) {
-		return TagKey.create(Registries.ENTITY_TYPE, Helpers.identifier(name));
-	}
-
-	@SuppressWarnings("SameParameterValue")
 	private static TagKey<EntityType<?>> create(final String name) {
-		return TagKey.create(Registries.ENTITY_TYPE, new ResourceLocation(SacksNSuch.MODID, name));
+		return TagKey.create(Registries.ENTITY_TYPE, SacksNSuch.location(name));
 	}
 }

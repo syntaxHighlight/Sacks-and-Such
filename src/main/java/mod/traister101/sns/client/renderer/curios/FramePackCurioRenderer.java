@@ -16,12 +16,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 
-import net.minecraftforge.api.distmarker.*;
+import net.neoforged.api.distmarker.*;
 
 @OnlyIn(Dist.CLIENT)
 public class FramePackCurioRenderer implements ICurioRenderer {
 
-	public static final ResourceLocation PACK_FRAME_TEXTURE = new ResourceLocation(SacksNSuch.MODID, "textures/curios/frame_pack.png");
+	public static final ResourceLocation PACK_FRAME_TEXTURE = SacksNSuch.location("textures/curios/frame_pack.png");
 	private final FramePackModel model;
 
 	public FramePackCurioRenderer() {
@@ -44,8 +44,8 @@ public class FramePackCurioRenderer implements ICurioRenderer {
 
 		poseStack.translate(0, -0.9, 0.6);
 
-		model.renderToBuffer(poseStack, bufferSource.getBuffer(model.renderType(PACK_FRAME_TEXTURE)), packedLight, OverlayTexture.NO_OVERLAY, 1, 1, 1,
-				1);
+		model.renderToBuffer(poseStack, bufferSource.getBuffer(model.renderType(PACK_FRAME_TEXTURE)), packedLight, OverlayTexture.NO_OVERLAY,
+				0xFFFFFFFF);
 
 		poseStack.popPose();
 	}

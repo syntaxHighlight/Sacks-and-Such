@@ -9,7 +9,6 @@ import mod.traister101.sns.util.ContainerType;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -19,7 +18,7 @@ import net.minecraft.world.inventory.*;
 
 public class ContainerItemScreen extends AbstractContainerScreen<ContainerItemMenu> {
 
-	private static final ResourceLocation TEXTURE = new ResourceLocation(SacksNSuch.MODID, "textures/gui/container.png");
+	private static final ResourceLocation TEXTURE = SacksNSuch.location("textures/gui/container.png");
 
 	public ContainerItemScreen(final ContainerItemMenu menu, final Inventory inventory, final Component title) {
 		super(menu, inventory, title);
@@ -27,25 +26,22 @@ public class ContainerItemScreen extends AbstractContainerScreen<ContainerItemMe
 
 	@Override
 	public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTick) {
-		this.renderBackground(graphics);
+		this.renderBackground(graphics, mouseX, mouseY, partialTick);
 		super.render(graphics, mouseX, mouseY, partialTick);
 
-		menu.getContainerStack().getCapability(SNSCapabilities.ITEM_VOIDER).resolve().ifPresent(itemVoider -> {
+		final var itemVoider = menu.getContainerStack().getCapability(SNSCapabilities.ITEM_VOIDER);
+		if (itemVoider != null) {
 			itemVoider.forEachVoidSlot(slotIndex -> {
+				if (slotIndex < 0 || slotIndex >= menu.containerSlots) return;
 				final Slot slot = menu.getSlot(slotIndex);
 
 				final float minX = leftPos + slot.x - 1;
 				final float minY = topPos + slot.y - 1;
 				final float maxY = minY + 18;
 				final float maxX = minX + 18;
-				final var vertexConsumer = graphics.bufferSource().getBuffer(RenderType.glintTranslucent());
-				final var matrix = graphics.pose().last().pose();
-				vertexConsumer.vertex(matrix, minX, minY, 0).uv(0, 0).uv2(0, 0).endVertex();
-				vertexConsumer.vertex(matrix, minX, maxY, 0).uv(0, 0).uv2(0, 0).endVertex();
-				vertexConsumer.vertex(matrix, maxX, maxY, 0).uv(0, 0).uv2(0, 0).endVertex();
-				vertexConsumer.vertex(matrix, maxX, minY, 0).uv(0, 0).uv2(0, 0).endVertex();
+				graphics.fill((int) minX, (int) minY, (int) maxX, (int) maxY, 0x668A2BE2);
 			});
-		});
+		}
 
 		renderTooltip(graphics, mouseX, mouseY);
 	}
@@ -63,7 +59,7 @@ public class ContainerItemScreen extends AbstractContainerScreen<ContainerItemMe
 			return;
 		}
 
-		if (slotIndex >= menu.getContainerSlots() || !Screen.hasControlDown()) {
+		if (slotIndex >= menu.containerSlots || !Screen.hasControlDown()) {
 			super.slotClicked(slot, slotIndex, mouseButton, clickType);
 			return;
 		}

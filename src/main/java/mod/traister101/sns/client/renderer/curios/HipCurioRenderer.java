@@ -25,10 +25,10 @@ import java.util.function.Supplier;
  */
 public final class HipCurioRenderer<M extends Model> implements ICurioRenderer {
 
-	public static final ResourceLocation LEATHER_SACK_TEXTURE = new ResourceLocation(SacksNSuch.MODID, "textures/curios/leather_sack.png");
-	public static final ResourceLocation BURLAP_SACK_TEXTURE = new ResourceLocation(SacksNSuch.MODID, "textures/curios/burlap_sack.png");
-	public static final ResourceLocation SEED_POUCH_TEXTURE = new ResourceLocation(SacksNSuch.MODID, "textures/curios/seed_pouch.png");
-	public static final ResourceLocation ORE_SACK_TEXTURE = new ResourceLocation(SacksNSuch.MODID, "textures/curios/ore_sack.png");
+	public static final ResourceLocation LEATHER_SACK_TEXTURE = SacksNSuch.location("textures/curios/leather_sack.png");
+	public static final ResourceLocation BURLAP_SACK_TEXTURE = SacksNSuch.location("textures/curios/burlap_sack.png");
+	public static final ResourceLocation SEED_POUCH_TEXTURE = SacksNSuch.location("textures/curios/seed_pouch.png");
+	public static final ResourceLocation ORE_SACK_TEXTURE = SacksNSuch.location("textures/curios/ore_sack.png");
 
 	private final ResourceLocation texture;
 	private final M model;
@@ -78,7 +78,7 @@ public final class HipCurioRenderer<M extends Model> implements ICurioRenderer {
 		}
 
 		if (modelAnimator != null) modelAnimator.animate(model, limbSwing, limbSwingAmount);
-		model.renderToBuffer(poseStack, bufferSource.getBuffer(model.renderType(texture)), packedLight, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1);
+		model.renderToBuffer(poseStack, bufferSource.getBuffer(model.renderType(texture)), packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
 
 		poseStack.popPose();
 	}

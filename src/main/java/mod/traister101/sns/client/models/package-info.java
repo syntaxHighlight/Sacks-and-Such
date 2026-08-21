@@ -3,6 +3,6 @@ package mod.traister101.sns.client.models;
 
 import net.minecraft.*;
 
-import net.minecraftforge.api.distmarker.*;
+import net.neoforged.api.distmarker.*;
 
 import javax.annotation.ParametersAreNonnullByDefault;

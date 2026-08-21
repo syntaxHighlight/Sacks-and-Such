@@ -6,12 +6,10 @@ import mod.traister101.sns.common.menu.SNSMenus;
 import mod.traister101.sns.compat.curios.CuriosCompat;
 import mod.traister101.sns.util.*;
 
-import net.minecraft.client.gui.screens.MenuScreens;
-
-import net.minecraftforge.client.event.EntityRenderersEvent.RegisterLayerDefinitions;
-import net.minecraftforge.client.event.*;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterLayerDefinitions;
+import net.neoforged.neoforge.client.event.*;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 
 import lombok.experimental.UtilityClass;
 
@@ -21,6 +19,7 @@ public final class ClientEventHandler {
 	public static void init(final IEventBus modEventBus) {
 		modEventBus.addListener(ClientEventHandler::onClientSetup);
 		modEventBus.addListener(ClientEventHandler::onRegisterClientTooltip);
+		modEventBus.addListener(ClientEventHandler::registerScreens);
 		modEventBus.addListener(ClientEventHandler::registerKeyBindings);
 		modEventBus.addListener(ClientEventHandler::registerLayers);
 		modEventBus.addListener(SacksNSuchGuiOverlay::registerOverlays);
@@ -28,9 +27,12 @@ public final class ClientEventHandler {
 
 	private static void onClientSetup(final FMLClientSetupEvent event) {
 		event.enqueueWork(() -> {
-			MenuScreens.register(SNSMenus.CONTAINER_ITEM_MENU.get(), ContainerItemScreen::new);
 			if (SNSUtils.isCuriosPresent()) CuriosCompat.clientSetup();
 		});
+	}
+
+	private static void registerScreens(final RegisterMenuScreensEvent event) {
+		event.register(SNSMenus.CONTAINER_ITEM_MENU.get(), ContainerItemScreen::new);
 	}
 
 	private static void onRegisterClientTooltip(final RegisterClientTooltipComponentFactoriesEvent event) {

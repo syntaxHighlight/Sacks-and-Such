@@ -1,12 +1,13 @@
 package mod.traister101.sns.common;
 
 import mod.traister101.sns.SacksNSuch;
-import net.dries007.tfc.util.Helpers;
+import net.dries007.tfc.common.TFCTags;
 
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
+
+import net.neoforged.neoforge.common.Tags;
 
 import lombok.experimental.UtilityClass;
 
@@ -16,61 +17,61 @@ public final class SNSItemTags {
 	/**
 	 * TFCs small ore tag for its ore items
 	 */
-	public static final TagKey<Item> TFC_ORE_PIECES = fromTFC("ore_pieces");
+	public static final TagKey<Item> TFC_ORE_PIECES = TFCTags.Items.ORE_PIECES;
 	/**
 	 * TFCs small ore tag for its small ore "nugget" items
 	 */
-	public static final TagKey<Item> TFC_SMALL_ORE_PIECES = fromTFC("small_ore_pieces");
+	public static final TagKey<Item> TFC_SMALL_ORE_PIECES = TFCTags.Items.SMALL_ORE_PIECES;
 
 	/**
 	 * TFCs seed tag
 	 */
-	public static final TagKey<Item> TFC_SEEDS = fromTFC("seeds");
+	public static final TagKey<Item> TFC_SEEDS = Tags.Items.SEEDS;
 
 	/**
 	 * TFCs soups tag
 	 */
-	public static final TagKey<Item> TFC_SOUPS = fromTFC("soups");
+	public static final TagKey<Item> TFC_SOUPS = TFCTags.Items.SOUPS;
 
 	/**
 	 * TFCs salads tag
 	 */
-	public static final TagKey<Item> TFC_SALADS = fromTFC("salads");
+	public static final TagKey<Item> TFC_SALADS = TFCTags.Items.SALADS;
 
 	/**
 	 * TFCs bread tag
 	 */
-	public static final TagKey<Item> TFC_BREADS = fromTFC("foods/breads");
+	public static final TagKey<Item> TFC_BREADS = TFCTags.Items.BREAD;
 
 	/**
 	 * TFCs cooked meat tag
 	 */
-	public static final TagKey<Item> TFC_COOKED_MEATS = fromTFC("foods/cooked_meats");
+	public static final TagKey<Item> TFC_COOKED_MEATS = TFCTags.Items.COOKED_MEATS;
 
 	/**
 	 * TFCs dairy tag
 	 */
-	public static final TagKey<Item> TFC_DAIRY = fromTFC("foods/dairy");
+	public static final TagKey<Item> TFC_DAIRY = TFCTags.Items.DAIRY;
 
 	/**
 	 * TFCs fruit tag
 	 */
-	public static final TagKey<Item> TFC_FIRUITS = fromTFC("foods/fruits");
+	public static final TagKey<Item> TFC_FIRUITS = TFCTags.Items.FRUITS;
 
 	/**
 	 * TFCs vegetable tag
 	 */
-	public static final TagKey<Item> TFC_VEGETABLES = fromTFC("foods/vegetables");
+	public static final TagKey<Item> TFC_VEGETABLES = TFCTags.Items.VEGETABLES;
 
 	/**
 	 * TFCs javelin tag
 	 */
-	public static final TagKey<Item> TFC_JAVELINS = fromTFC("javelins");
+	public static final TagKey<Item> TFC_JAVELINS = Tags.Items.TOOLS_SPEAR;
 
 	/**
 	 * TFCs high quality cloth tag
 	 */
-	public static final TagKey<Item> TFC_HIGH_QUALITY_CLOTH = fromTFC("high_quality_cloth");
+	public static final TagKey<Item> TFC_HIGH_QUALITY_CLOTH = TFCTags.Items.HIGH_QUALITY_CLOTH;
 
 	/**
 	 * Tag for items that shouldn't go inside Item Containers. We put common items in here like our other item containers
@@ -120,12 +121,8 @@ public final class SNSItemTags {
 	 */
 	public static final TagKey<Item> LUNCHBOX_FOOD = create("lunchbox_food");
 
-	private static TagKey<Item> fromTFC(final String name) {
-		return TagKey.create(Registries.ITEM, Helpers.identifier(name));
-	}
-
 	@SuppressWarnings("SameParameterValue")
 	private static TagKey<Item> create(final String name) {
-		return TagKey.create(Registries.ITEM, new ResourceLocation(SacksNSuch.MODID, name));
+		return TagKey.create(Registries.ITEM, SacksNSuch.location(name));
 	}
 }

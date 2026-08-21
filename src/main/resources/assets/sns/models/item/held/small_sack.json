@@ -1,6 +1,6 @@
 {
   "credit": "Made with Blockbench",
-  "parent": "forge:item/default",
+  "parent": "neoforge:item/default",
   "elements": [
 	{
 	  "from": [

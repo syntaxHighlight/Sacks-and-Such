@@ -1,6 +1,6 @@
 {
   "credit": "Made with Blockbench",
-  "parent": "forge:item/default",
+  "parent": "neoforge:item/default",
   "texture_size": [
 	32,
 	32

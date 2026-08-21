@@ -12,13 +12,13 @@ import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 
-import net.minecraftforge.api.distmarker.*;
+import net.neoforged.api.distmarker.*;
 
 @OnlyIn(Dist.CLIENT)
 public class FramePackModel extends Model {
 
 	// This layer location should be baked with EntityRendererProvider.Context in the entity renderer and passed into this model's constructor
-	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(new ResourceLocation(SacksNSuch.MODID, "frame_pack"), "main");
+	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(SacksNSuch.location("frame_pack"), "main");
 	private final ModelPart pack;
 
 	public FramePackModel(final ModelPart root) {
@@ -42,7 +42,7 @@ public class FramePackModel extends Model {
 
 	@Override
 	public void renderToBuffer(final PoseStack poseStack, final VertexConsumer vertexConsumer, final int packedLight, final int packedOverlay,
-			final float red, final float green, final float blue, final float alpha) {
-		pack.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+			final int color) {
+		pack.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
 	}
 }

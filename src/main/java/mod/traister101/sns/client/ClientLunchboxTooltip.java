@@ -3,9 +3,6 @@ package mod.traister101.sns.client;
 import mod.traister101.sns.client.utils.SNSRenderHelper;
 import mod.traister101.sns.config.SNSConfig;
 import mod.traister101.sns.util.LunchboxTooltip;
-import net.dries007.tfc.client.ClientDeviceImageTooltip;
-import net.dries007.tfc.client.ClientDeviceImageTooltip.Texture;
-
 import net.minecraft.client.gui.*;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.util.FastColor.ARGB32;
@@ -19,26 +16,8 @@ public class ClientLunchboxTooltip implements ClientTooltipComponent {
 	public static final int DEFAULT_COLOR = 0x1bab44;
 	private final LunchboxTooltip tooltip;
 
-	private static void blit(final GuiGraphics graphics, final int x, final int y, final Texture texture) {
-		graphics.blit(ClientDeviceImageTooltip.TEXTURE_LOCATION, x, y, 0, (float) texture.x, (float) texture.y, texture.w, texture.h, 128, 128);
-	}
-
 	private static void drawBorder(final GuiGraphics graphics, final int x, final int y, final int width, final int height) {
-		blit(graphics, x, y, Texture.BORDER_CORNER_TOP);
-		blit(graphics, x + width * 18 + 1, y, Texture.BORDER_CORNER_TOP);
-
-		for (int i = 0; i < width; ++i) {
-			blit(graphics, x + 1 + i * 18, y, Texture.BORDER_HORIZONTAL_TOP);
-			blit(graphics, x + 1 + i * 18, y + height * 20, Texture.BORDER_HORIZONTAL_BOTTOM);
-		}
-
-		for (int j = 0; j < height; ++j) {
-			blit(graphics, x, y + j * 20 + 1, Texture.BORDER_VERTICAL);
-			blit(graphics, x + width * 18 + 1, y + j * 20 + 1, Texture.BORDER_VERTICAL);
-		}
-
-		blit(graphics, x, y + height * 20, Texture.BORDER_CORNER_BOTTOM);
-		blit(graphics, x + width * 18 + 1, y + height * 20, Texture.BORDER_CORNER_BOTTOM);
+		graphics.renderOutline(x, y, width * 18 + 2, height * 20 + 2, 0xFFA0A0A0);
 	}
 
 	private static void renderStack(final Font font, final ItemStack itemstack, final int x, final int y, final GuiGraphics graphics) {
@@ -47,7 +26,8 @@ public class ClientLunchboxTooltip implements ClientTooltipComponent {
 	}
 
 	private static void renderSlot(final GuiGraphics graphics, final Font font, final int x, final int y, final ItemStack itemstack) {
-		blit(graphics, x, y, Texture.SLOT);
+		graphics.fill(x, y, x + 18, y + 18, 0xFF373737);
+		graphics.renderOutline(x, y, 18, 18, 0xFF8B8B8B);
 		renderStack(font, itemstack, x + 1, y + 1, graphics);
 	}
 

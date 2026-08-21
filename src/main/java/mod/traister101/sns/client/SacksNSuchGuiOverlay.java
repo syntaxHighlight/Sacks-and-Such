@@ -1,30 +1,34 @@
 package mod.traister101.sns.client;
 
+import mod.traister101.sns.SacksNSuch;
 import mod.traister101.sns.common.capability.SNSCapabilities;
 import mod.traister101.sns.common.items.*;
 import mod.traister101.sns.util.SNSUtils;
-import net.dries007.tfc.common.capabilities.food.*;
+import net.dries007.tfc.common.component.food.*;
 import net.dries007.tfc.util.Helpers;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;
+import net.minecraft.client.gui.LayeredDraw.Layer;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.item.ItemStack;
 
-import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
-import net.minecraftforge.client.gui.overlay.*;
+import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 
 import java.util.*;
 
 public enum SacksNSuchGuiOverlay {
 
-	LUNCHBOX_INFO("lunchbox_info", (gui, guiGraphics, partialTick, screenWidth, screenHeight) -> {
-		final Minecraft minecraft = gui.getMinecraft();
-		if (!minecraft.options.hideGui) gui.setupOverlayRenderState(true, false);
+	LUNCHBOX_INFO("lunchbox_info", (guiGraphics, deltaTracker) -> {
+		final Minecraft minecraft = Minecraft.getInstance();
+		if (minecraft.options.hideGui) return;
+		final int screenWidth = guiGraphics.guiWidth();
+		final int screenHeight = guiGraphics.guiHeight();
 		final LocalPlayer player = minecraft.player;
 		if (player == null) return;
 
@@ -38,7 +42,8 @@ public enum SacksNSuchGuiOverlay {
 			} else currentItem = mainHandItem;
 		}
 
-		currentItem.getCapability(SNSCapabilities.FOOD_HOLDER).ifPresent(lunchboxHandler -> {
+		final var lunchboxHandler = currentItem.getCapability(SNSCapabilities.FOOD_HOLDER);
+		if (lunchboxHandler != null) {
 			int nextLineOfText = renderComponent(minecraft.font, guiGraphics,
 					Component.translatable(LunchBoxItem.SELECTED_SLOT_TOOLTIP, SNSUtils.intComponent(lunchboxHandler.getSelectedSlot() + 1)),
 					screenWidth, screenHeight);
@@ -58,19 +63,21 @@ public enum SacksNSuchGuiOverlay {
 
 			if (!player.isShiftKeyDown()) return;
 
-			final var maybeComponents = selectedStack.getCapability(FoodCapability.CAPABILITY).map(iFood -> {
-				final var foodTooltip = new ArrayList<Component>();
-				final var data = iFood.getData();
+			final var food = FoodCapability.get(selectedStack);
+			if (food == null) return;
+			final var foodComponents = new ArrayList<Component>();
+			{
+				final var data = food.getData();
 
-				foodTooltip.add(Component.translatable("tfc.tooltip.nutrition").withStyle(ChatFormatting.GRAY));
+				foodComponents.add(Component.translatable("tfc.tooltip.nutrition").withStyle(ChatFormatting.GRAY));
 
 				boolean hasData = false;
-				if (!iFood.isRotten()) {
+				if (!food.isRotten()) {
 					{
 						final float saturation = data.saturation();
 						if (0 < saturation) {
 							// This display makes it so 100% saturation means a full hunger bar worth of saturation.
-							foodTooltip.add(Component.translatable("tfc.tooltip.nutrition_saturation", String.format("%d", (int) (saturation * 5)))
+							foodComponents.add(Component.translatable("tfc.tooltip.nutrition_saturation", String.format("%d", (int) (saturation * 5)))
 									.withStyle(ChatFormatting.GRAY));
 							hasData = true;
 						}
@@ -78,7 +85,7 @@ public enum SacksNSuchGuiOverlay {
 					{
 						final int water = (int) data.water();
 						if (0 < water) {
-							foodTooltip.add(
+							foodComponents.add(
 									Component.translatable("tfc.tooltip.nutrition_water", String.format("%d", water)).withStyle(ChatFormatting.GRAY));
 							hasData = true;
 						}
@@ -88,7 +95,7 @@ public enum SacksNSuchGuiOverlay {
 						final float value = data.nutrient(nutrient);
 						if (0 >= value) continue;
 
-						foodTooltip.add(Component.literal(" - ")
+						foodComponents.add(Component.literal(" - ")
 								.append(Helpers.translateEnum(nutrient))
 								.append(": " + String.format("%.1f", value))
 								.withStyle(nutrient.getColor()));
@@ -97,27 +104,23 @@ public enum SacksNSuchGuiOverlay {
 				}
 
 				if (!hasData) {
-					foodTooltip.add(Component.translatable("tfc.tooltip.nutrition_none").withStyle(ChatFormatting.GRAY));
+					foodComponents.add(Component.translatable("tfc.tooltip.nutrition_none").withStyle(ChatFormatting.GRAY));
 				}
-
-				return foodTooltip;
-			});
-			if (maybeComponents.isEmpty()) return;
-
-			renderComponents(minecraft.font, guiGraphics, maybeComponents.get(), screenWidth, nextLineOfText);
-		});
+			}
+			renderComponents(minecraft.font, guiGraphics, foodComponents, screenWidth, nextLineOfText);
+		}
 	});
 
 	private final String id;
-	private final IGuiOverlay overlay;
+	private final Layer overlay;
 
-	SacksNSuchGuiOverlay(final String id, final IGuiOverlay overlay) {
+	SacksNSuchGuiOverlay(final String id, final Layer overlay) {
 		this.id = id;
 		this.overlay = overlay;
 	}
 
-	public static void registerOverlays(final RegisterGuiOverlaysEvent event) {
-		event.registerAbove(VanillaGuiOverlay.HOTBAR.id(), LUNCHBOX_INFO.id(), LUNCHBOX_INFO.overlay);
+	public static void registerOverlays(final RegisterGuiLayersEvent event) {
+		event.registerAbove(VanillaGuiLayers.HOTBAR, SacksNSuch.location(LUNCHBOX_INFO.id()), LUNCHBOX_INFO.overlay);
 	}
 
 	/**

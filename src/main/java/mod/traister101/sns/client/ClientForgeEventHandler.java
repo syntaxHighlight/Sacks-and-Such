@@ -14,7 +14,6 @@ import net.minecraft.network.chat.*;
 import net.minecraft.world.entity.EquipmentSlot;
 import top.theillusivec4.curios.api.*;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
-import top.theillusivec4.curios.common.inventory.CurioSlot;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -23,10 +22,10 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
-import net.minecraftforge.client.event.InputEvent.*;
-import net.minecraftforge.client.event.ScreenEvent;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.eventbus.api.IEventBus;
+import net.neoforged.neoforge.client.event.InputEvent.*;
+import net.neoforged.neoforge.client.event.ScreenEvent;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.bus.api.IEventBus;
 
 import java.util.Optional;
 
@@ -59,16 +58,15 @@ public final class ClientForgeEventHandler {
 				}).orElse(null);
 				if (slotData == null) {
 					final var maybeSlotResult = CuriosApi.getCuriosInventory(player)
-							.resolve()
 							.flatMap(
 									curiosItemHandler -> curiosItemHandler.findFirstCurio(itemStack -> itemStack.getItem() instanceof ContainerItem));
 					if (maybeSlotResult.isPresent()) {
 						final var slotResult = maybeSlotResult.get();
 						final ItemStack itemStack = slotResult.stack();
 
-						final var maybeItemHandler = itemStack.getCapability(ForgeCapabilities.ITEM_HANDLER).resolve();
+						final var itemHandler = itemStack.getCapability(Capabilities.ItemHandler.ITEM);
 
-						if (maybeItemHandler.isPresent()) {
+						if (itemHandler != null) {
 							final SlotContext slotContext = slotResult.slotContext();
 							slotData = new CuriosSlotData(slotContext.identifier(), slotContext.index());
 						}
@@ -126,9 +124,13 @@ public final class ClientForgeEventHandler {
 				if (!(slotUnderMouse.getItem().getItem() instanceof ContainerItem)) return;
 
 				ItemSlotData slotData = null;
-				if (SNSUtils.isCuriosPresent() && slotUnderMouse instanceof final CurioSlot curioSlot) {
-					final var identifier = curioSlot.getIdentifier();
-					slotData = new CuriosSlotData(identifier, index);
+				if (SNSUtils.isCuriosPresent()) {
+					final var result = CuriosApi.getCuriosInventory(player)
+							.flatMap(handler -> handler.findFirstCurio(stack -> stack == slotUnderMouse.getItem())).orElse(null);
+					if (result != null) {
+						final SlotContext context = result.slotContext();
+						slotData = new CuriosSlotData(context.identifier(), context.index());
+					}
 				}
 
 				final var inventory = player.getInventory();
@@ -158,18 +160,19 @@ public final class ClientForgeEventHandler {
 
 		if (!player.isShiftKeyDown()) return;
 
-		final double scrollDelta = event.getScrollDelta();
+		final double scrollDelta = event.getScrollDeltaY();
 
 		final boolean scrollForwards = scrollDelta < 0;
 		final boolean scrollBackwards = scrollDelta > 0;
 
-		final var capability = mainHandStack.getCapability(SNSCapabilities.FOOD_HOLDER);
+		final var foodHolder = mainHandStack.getCapability(SNSCapabilities.FOOD_HOLDER);
+		if (foodHolder == null) return;
 
 		if (scrollForwards) {
-			capability.ifPresent(foodHolder -> foodHolder.cycleSelected(CycleDirection.FORWARD));
+			foodHolder.cycleSelected(CycleDirection.FORWARD);
 			SNSPacketHandler.sendToServer(new ServerboundPacketCycleSlotPacket(CycleDirection.FORWARD));
 		} else if (scrollBackwards) {
-			capability.ifPresent(foodHolder -> foodHolder.cycleSelected(CycleDirection.BACKWARD));
+			foodHolder.cycleSelected(CycleDirection.BACKWARD);
 			SNSPacketHandler.sendToServer(new ServerboundPacketCycleSlotPacket(CycleDirection.BACKWARD));
 		}
 		event.setCanceled(true);
