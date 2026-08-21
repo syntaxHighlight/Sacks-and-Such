@@ -12,7 +12,7 @@ import mod.traister101.sns.util.SNSUtils.ToggleType;
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.item.Item;
 
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,7 +23,7 @@ public class BuiltInLanguage extends SmartLanguageProvider {
 	/**
 	 * A set of our items that have registry names we can {@link #langify(String)} to get our actual item names
 	 */
-	private static final Set<RegistryObject<? extends Item>> SIMPLE_ITEM_LANG = Set.of(SNSItems.UNFINISHED_LEATHER_SACK, SNSItems.REINFORCED_FIBER,
+	private static final Set<DeferredHolder<Item, ? extends Item>> SIMPLE_ITEM_LANG = Set.of(SNSItems.UNFINISHED_LEATHER_SACK, SNSItems.REINFORCED_FIBER,
 			SNSItems.REINFORCED_FABRIC, SNSItems.PACK_FRAME, SNSItems.LEATHER_STRIP, SNSItems.BOUND_LEATHER_STRIP, SNSItems.BUCKLE,
 			SNSItems.STRAW_BASKET, SNSItems.LEATHER_SACK, SNSItems.BURLAP_SACK, SNSItems.ORE_SACK, SNSItems.SEED_POUCH, SNSItems.FRAME_PACK,
 			SNSItems.LUNCHBOX, SNSItems.QUIVER, SNSItems.MOB_NET_ITEM, SNSItems.HIKING_BOOTS, SNSItems.STEEL_TOE_HIKING_BOOTS,
@@ -83,7 +83,7 @@ public class BuiltInLanguage extends SmartLanguageProvider {
 
 	@Override
 	protected Iterable<Item> getKnownItems() {
-		return SNSItems.ITEMS.getEntries().stream().map(RegistryObject::get)::iterator;
+		return SNSItems.ITEMS.getEntries().stream().<Item>map(DeferredHolder::get).toList();
 	}
 
 	private void addItemTranslations() {
@@ -98,7 +98,7 @@ public class BuiltInLanguage extends SmartLanguageProvider {
 		addItem(SNSItems.RED_STEEL_HORSESHOES, "Red Steel Horseshoes");
 	}
 
-	private void addSimpleItem(final RegistryObject<? extends Item> item) {
+	private void addSimpleItem(final DeferredHolder<Item, ? extends Item> item) {
 		addItem(item, langify(item.getId().getPath()));
 	}
 }

@@ -1,6 +1,5 @@
 package mod.traister101.sns.datagen.providers;
 
-import com.google.gson.*;
 import mod.traister101.sns.SacksNSuch;
 import mod.traister101.sns.common.SNSItemTags;
 import mod.traister101.sns.common.items.*;
@@ -9,13 +8,16 @@ import mod.traister101.sns.datagen.recipes.CraftingRecipeBuilder;
 import mod.traister101.sns.datagen.tfc.data.*;
 import net.dries007.tfc.common.TFCTags;
 import net.dries007.tfc.common.blocks.TFCBlocks;
-import net.dries007.tfc.common.capabilities.forge.ForgeRule;
+import net.dries007.tfc.common.component.forge.ForgeRule;
 import net.dries007.tfc.common.items.TFCItems;
-import net.dries007.tfc.common.recipes.TFCRecipeSerializers;
-import net.dries007.tfc.common.recipes.ingredients.ItemStackIngredient;
+import net.dries007.tfc.common.recipes.outputs.ItemStackProvider;
 import net.dries007.tfc.util.Metal;
 import net.dries007.tfc.util.Metal.*;
+import net.dries007.tfc.util.data.KnappingPattern;
+import net.dries007.tfc.util.data.KnappingType;
 
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.*;
@@ -24,29 +26,28 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.*;
 
-import net.minecraftforge.common.Tags;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.common.crafting.SizedIngredient;
 
-import org.jetbrains.annotations.Nullable;
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.concurrent.CompletableFuture;
 
 public class BuiltInRecipes extends RecipeProvider {
 
-	public BuiltInRecipes(final PackOutput packOutput) {
-		super(packOutput);
+	public BuiltInRecipes(final PackOutput packOutput, final CompletableFuture<HolderLookup.Provider> registries) {
+		super(packOutput, registries);
 	}
 
-	private static void craftingItems(final Consumer<FinishedRecipe> writer) {
+	private static void craftingItems(final RecipeOutput writer) {
 		CraftingRecipeBuilder.shaped(SNSItems.REINFORCED_FIBER.get())
 				.pattern("JJJ", "SSS", "JJJ")
 				.define('J', TFCItems.JUTE_FIBER.get())
-				.define('S', Tags.Items.STRING)
+				.define('S', Tags.Items.STRINGS)
 				.unlockedBy("has_jute", has(TFCItems.JUTE_FIBER.get()))
-				.unlockedBy("has_string", has(Tags.Items.STRING))
+				.unlockedBy("has_string", has(Tags.Items.STRINGS))
 				.save(writer);
 
-		final TagKey<Item> steelRodsTag = TagKey.create(Registries.ITEM, new ResourceLocation("forge", "rods/steel"));
+		final TagKey<Item> steelRodsTag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "rods/steel"));
 		{
 			CraftingRecipeBuilder.shaped(SNSItems.PACK_FRAME.get())
 					.pattern("RRR", "R R", "RRR")
@@ -67,48 +68,47 @@ public class BuiltInRecipes extends RecipeProvider {
 				.unlockedBy("has_sewing_needle", has(TFCTags.Items.SEWING_NEEDLES))
 				.save(writer);
 
-		writer.accept(new LeatherKnapping(SNSItems.UNFINISHED_LEATHER_SACK.get(), " XXX ", "XXXXX", "XXXXX", "XXXXX", " XXX "));
-		writer.accept(new LeatherKnapping(SNSItems.LEATHER_STRIP.get(), 3, "X X X", "X X X", "X X X", "X X X", "X X X"));
-		writer.accept(new Loom(new ItemStackIngredient(Ingredient.of(SNSItems.REINFORCED_FIBER.get()), 16), SNSItems.REINFORCED_FABRIC.get(), 1, 16,
-				new ResourceLocation(SacksNSuch.MODID, "loom/reinforced_fabric")));
+		saveKnapping(writer, SNSItems.UNFINISHED_LEATHER_SACK.get(), 1, " XXX ", "XXXXX", "XXXXX", "XXXXX", " XXX ");
+		saveKnapping(writer, SNSItems.LEATHER_STRIP.get(), 3, "X X X", "X X X", "X X X", "X X X", "X X X");
+		saveLoom(writer, new SizedIngredient(Ingredient.of(SNSItems.REINFORCED_FIBER.get()), 16), SNSItems.REINFORCED_FABRIC.get(), 1, 16,
+				ResourceLocation.fromNamespaceAndPath(SacksNSuch.MODID, "loom/reinforced_fabric"));
 
-		writer.accept(new AnvilRecipe(Ingredient.of(TFCItems.METAL_ITEMS.get(Default.WROUGHT_IRON).get(ItemType.INGOT).get()),
-				new ItemStack(SNSItems.BUCKLE.get()), Default.WROUGHT_IRON.metalTier().ordinal(),
+		saveAnvil(writer, Ingredient.of(TFCItems.METAL_ITEMS.get(Metal.WROUGHT_IRON).get(ItemType.INGOT).get()),
+				new ItemStack(SNSItems.BUCKLE.get()), Metal.WROUGHT_IRON.tier(),
 				new ForgeRule[] {ForgeRule.PUNCH_LAST, ForgeRule.PUNCH_LAST, ForgeRule.PUNCH_LAST}, true,
-				new ResourceLocation(SacksNSuch.MODID, "iron_buckle")));
+				ResourceLocation.fromNamespaceAndPath(SacksNSuch.MODID, "iron_buckle"));
 		HeatingRecipe.melt(SNSItems.BUCKLE.get(), DefaultMetal.WROUGHT_IRON.meltTemp, DefaultMetal.WROUGHT_IRON.meltMetal(), 100).save(writer);
-		writer.accept(new AnvilRecipe(Ingredient.of(TFCItems.METAL_ITEMS.get(Default.STEEL).get(ItemType.INGOT).get()),
-				new ItemStack(SNSItems.BUCKLE.get()), Default.STEEL.metalTier().ordinal(),
+		saveAnvil(writer, Ingredient.of(TFCItems.METAL_ITEMS.get(Metal.STEEL).get(ItemType.INGOT).get()),
+				new ItemStack(SNSItems.BUCKLE.get()), Metal.STEEL.tier(),
 				new ForgeRule[] {ForgeRule.PUNCH_LAST, ForgeRule.PUNCH_LAST, ForgeRule.PUNCH_LAST}, true,
-				new ResourceLocation(SacksNSuch.MODID, "steel_buckle")));
+				ResourceLocation.fromNamespaceAndPath(SacksNSuch.MODID, "steel_buckle"));
 
 		horseshoeRecipes(writer, SNSItems.STEEL_HORSESHOE.get(), steelRodsTag, DefaultMetal.STEEL);
-		final TagKey<Item> blackSteelRods = TagKey.create(Registries.ITEM, new ResourceLocation("forge", "rods/black_steel"));
+		final TagKey<Item> blackSteelRods = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "rods/black_steel"));
 		horseshoeRecipes(writer, SNSItems.BLACK_STEEL_HORSESHOE.get(), blackSteelRods, DefaultMetal.BLACK_STEEL);
-		final TagKey<Item> blueSteelRods = TagKey.create(Registries.ITEM, new ResourceLocation("forge", "rods/blue_steel"));
+		final TagKey<Item> blueSteelRods = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "rods/blue_steel"));
 		horseshoeRecipes(writer, SNSItems.BLUE_STEEL_HORSESHOE.get(), blueSteelRods, DefaultMetal.BLUE_STEEL);
-		final TagKey<Item> redSteelRods = TagKey.create(Registries.ITEM, new ResourceLocation("forge", "rods/red_steel"));
+		final TagKey<Item> redSteelRods = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "rods/red_steel"));
 		horseshoeRecipes(writer, SNSItems.RED_STEEL_HORSESHOE.get(), redSteelRods, DefaultMetal.RED_STEEL);
 	}
 
-	private static void horseshoeRecipes(final Consumer<FinishedRecipe> writer, final Item horseshoe, final TagKey<Item> steelRodsTag,
+	private static void horseshoeRecipes(final RecipeOutput writer, final Item horseshoe, final TagKey<Item> steelRodsTag,
 			final MetalData metal) {
-		final Metal.Tier tier = metal.metalTier();
-		writer.accept(new AnvilRecipe(Ingredient.of(steelRodsTag), new ItemStack(horseshoe), tier.ordinal(),
-				new ForgeRule[] {ForgeRule.BEND_THIRD_LAST, ForgeRule.BEND_SECOND_LAST, ForgeRule.UPSET_LAST}, false));
+		saveAnvil(writer, Ingredient.of(steelRodsTag), new ItemStack(horseshoe), metal.metalTier(),
+				new ForgeRule[] {ForgeRule.BEND_THIRD_LAST, ForgeRule.BEND_SECOND_LAST, ForgeRule.UPSET_LAST}, false, null);
 		HeatingRecipe.melt(horseshoe, metal.getMeltTemp(), metal.meltMetal(), 50).save(writer);
 	}
 
-	private static void containerItems(final Consumer<FinishedRecipe> writer) {
+	private static void containerItems(final RecipeOutput writer) {
 		CraftingRecipeBuilder.shaped(SNSItems.STRAW_BASKET.get())
 				.damageInputs()
 				.pattern("SSS", "T T", " TK")
 				.define('S', TFCItems.STRAW.get())
 				.define('T', TFCBlocks.THATCH.get())
-				.define('K', TFCTags.Items.KNIVES)
+				.define('K', TFCTags.Items.TOOLS_KNIFE)
 				.unlockedBy("has_straw", has(TFCItems.STRAW.get()))
 				.unlockedBy("has_thatch", has(TFCBlocks.THATCH.get()))
-				.unlockedBy("has_knife", has(TFCTags.Items.KNIVES))
+				.unlockedBy("has_knife", has(TFCTags.Items.TOOLS_KNIFE))
 				.save(writer);
 
 		CraftingRecipeBuilder.shaped(SNSItems.LEATHER_SACK.get())
@@ -138,11 +138,11 @@ public class BuiltInRecipes extends RecipeProvider {
 		CraftingRecipeBuilder.shaped(SNSItems.SEED_POUCH.get())
 				.damageInputs()
 				.pattern("SSS", "WBW", " WN")
-				.define('S', Tags.Items.STRING)
+				.define('S', Tags.Items.STRINGS)
 				.define('W', SNSItemTags.TFC_HIGH_QUALITY_CLOTH)
 				.define('B', TFCItems.BURLAP_CLOTH.get())
 				.define('N', TFCTags.Items.SEWING_NEEDLES)
-				.unlockedBy("has_string", has(Tags.Items.STRING))
+				.unlockedBy("has_string", has(Tags.Items.STRINGS))
 				.unlockedBy("has_wool_cloth", has(SNSItemTags.TFC_HIGH_QUALITY_CLOTH))
 				.unlockedBy("has_burlap_cloth", has(TFCItems.BURLAP_CLOTH.get()))
 				.unlockedBy("has_sewing_needle", has(TFCTags.Items.SEWING_NEEDLES))
@@ -152,11 +152,11 @@ public class BuiltInRecipes extends RecipeProvider {
 				.damageInputs()
 				.pattern("RRR", "LBL", " LN")
 				.define('R', SNSItems.REINFORCED_FIBER.get())
-				.define('L', Tags.Items.LEATHER)
+				.define('L', Tags.Items.LEATHERS)
 				.define('B', TFCItems.BURLAP_CLOTH.get())
 				.define('N', TFCTags.Items.SEWING_NEEDLES)
 				.unlockedBy("has_reinforced_fiber", has(SNSItems.REINFORCED_FIBER.get()))
-				.unlockedBy("has_leather", has(Tags.Items.LEATHER))
+				.unlockedBy("has_leather", has(Tags.Items.LEATHERS))
 				.unlockedBy("has_burlap_cloth", has(TFCItems.BURLAP_CLOTH.get()))
 				.unlockedBy("has_sewing_needle", has(TFCTags.Items.SEWING_NEEDLES))
 				.save(writer);
@@ -175,8 +175,8 @@ public class BuiltInRecipes extends RecipeProvider {
 				.save(writer);
 
 		{
-			final var wroughtIronRodsTag = TagKey.create(Registries.ITEM, new ResourceLocation("forge", "rods/wrought_iron"));
-			final var wroughtIronSheetsTag = TagKey.create(Registries.ITEM, new ResourceLocation("forge", "sheets/wrought_iron"));
+			final var wroughtIronRodsTag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "rods/wrought_iron"));
+			final var wroughtIronSheetsTag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "sheets/wrought_iron"));
 			CraftingRecipeBuilder.shaped(SNSItems.LUNCHBOX.get())
 					.pattern("RLR", "SFS", " S ")
 					.define('R', wroughtIronRodsTag)
@@ -190,17 +190,17 @@ public class BuiltInRecipes extends RecipeProvider {
 					.save(writer);
 		}
 
-		writer.accept(new LeatherKnapping(SNSItems.QUIVER.get(), " XXXX", "X XXX", "X XXX", "X XXX", " XXXX"));
+		saveKnapping(writer, SNSItems.QUIVER.get(), 1, " XXXX", "X XXX", "X XXX", "X XXX", " XXXX");
 	}
 
-	private static void horseshoesRecipes(final Consumer<FinishedRecipe> writer, final HorseshoesItem horseshoes, final Item horseshoe,
+	private static void horseshoesRecipes(final RecipeOutput writer, final HorseshoesItem horseshoes, final Item horseshoe,
 			final MetalData metal) {
 		CraftingRecipeBuilder.shapeless(horseshoes).requires(horseshoe, 4).unlockedBy("has_horseshoe", has(horseshoe)).save(writer);
 		HeatingRecipe.melt(horseshoes, metal.getMeltTemp(), metal.meltMetal(), 200).save(writer);
 	}
 
 	private static void safetyToeHikingBoots(final HikingBootsItem hikingBootsItem, final TagKey<Item> metalSheetsTag,
-			final Consumer<FinishedRecipe> writer) {
+			final RecipeOutput writer) {
 		AdvancedCraftingRecipeBuilder.shaped(hikingBootsItem)
 				.pattern("RWR", "LLL", "TBT")
 				.define('R', SNSItems.REINFORCED_FIBER.get())
@@ -218,7 +218,7 @@ public class BuiltInRecipes extends RecipeProvider {
 	}
 
 	@Override
-	protected void buildRecipes(final Consumer<FinishedRecipe> writer) {
+	protected void buildRecipes(final RecipeOutput writer) {
 		craftingItems(writer);
 		containerItems(writer);
 
@@ -242,13 +242,13 @@ public class BuiltInRecipes extends RecipeProvider {
 				.save(writer);
 
 		{
-			final var steelSheets = TagKey.create(Registries.ITEM, new ResourceLocation("forge", "sheets/steel"));
+			final var steelSheets = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "sheets/steel"));
 			safetyToeHikingBoots(SNSItems.STEEL_TOE_HIKING_BOOTS.get(), steelSheets, writer);
-			final var blackSteelSheets = TagKey.create(Registries.ITEM, new ResourceLocation("forge", "sheets/black_steel"));
+			final var blackSteelSheets = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "sheets/black_steel"));
 			safetyToeHikingBoots(SNSItems.BLACK_STEEL_TOE_HIKING_BOOTS.get(), blackSteelSheets, writer);
-			final var blueSteelSheets = TagKey.create(Registries.ITEM, new ResourceLocation("forge", "sheets/blue_steel"));
+			final var blueSteelSheets = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "sheets/blue_steel"));
 			safetyToeHikingBoots(SNSItems.BLUE_STEEL_TOE_HIKING_BOOTS.get(), blueSteelSheets, writer);
-			final var redSteelSheets = TagKey.create(Registries.ITEM, new ResourceLocation("forge", "sheets/red_steel"));
+			final var redSteelSheets = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "sheets/red_steel"));
 			safetyToeHikingBoots(SNSItems.RED_STEEL_TOE_HIKING_BOOTS.get(), redSteelSheets, writer);
 		}
 
@@ -258,187 +258,29 @@ public class BuiltInRecipes extends RecipeProvider {
 		horseshoesRecipes(writer, SNSItems.RED_STEEL_HORSESHOES.get(), SNSItems.RED_STEEL_HORSESHOE.get(), DefaultMetal.RED_STEEL);
 	}
 
-	// TODO this is gross
-	public static class LeatherKnapping implements FinishedRecipe {
-
-		private final Item result;
-		private final int count;
-		private final String[] pattern;
-
-		public LeatherKnapping(final Item result, final int count, final String... pattern) {
-			this.result = result;
-			this.count = count;
-			this.pattern = pattern;
-		}
-
-		public LeatherKnapping(final Item result, final String... pattern) {
-			this(result, 1, pattern);
-		}
-
-		@Override
-		public void serializeRecipeData(final JsonObject recipe) {
-			recipe.addProperty("knapping_type", "tfc:leather");
-			final var pattern = new JsonArray();
-
-			Arrays.stream(this.pattern).forEach(pattern::add);
-
-			recipe.add("pattern", pattern);
-
-			final var result = new JsonObject();
-			//noinspection DataFlowIssue
-			result.addProperty("item", ForgeRegistries.ITEMS.getKey(this.result).toString());
-			if (1 < count) result.addProperty("count", count);
-			recipe.add("result", result);
-		}
-
-		@Override
-		public ResourceLocation getId() {
-			//noinspection DataFlowIssue
-			return ForgeRegistries.ITEMS.getKey(result).withPrefix("leather_knapping/");
-		}
-
-		@Override
-		public RecipeSerializer<?> getType() {
-			return TFCRecipeSerializers.KNAPPING.get();
-		}
-
-		@Nullable
-		@Override
-		public JsonObject serializeAdvancement() {
-			return null;
-		}
-
-		@Nullable
-		@Override
-		public ResourceLocation getAdvancementId() {
-			return null;
-		}
+	private static void saveKnapping(final RecipeOutput output, final Item result, final int count, final String... legacyPattern) {
+		final String[] pattern = Arrays.stream(legacyPattern).map(row -> row.replace('X', '#')).toArray(String[]::new);
+		final ResourceLocation id = itemId(result).withPrefix("leather_knapping/");
+		final var recipe = new net.dries007.tfc.common.recipes.KnappingRecipe(
+				KnappingType.MANAGER.getReference(ResourceLocation.fromNamespaceAndPath("tfc", "leather")),
+				KnappingPattern.from(false, pattern), Optional.empty(), new ItemStack(result, count));
+		output.accept(id, recipe, null);
 	}
 
-	public static class Loom implements FinishedRecipe {
-
-		private final ItemStackIngredient ingredient;
-		private final Item result;
-		private final int count;
-		private final int steps;
-		private final ResourceLocation texture;
-
-		public Loom(final ItemStackIngredient ingredient, final Item result, final int count, final int steps, final ResourceLocation texture) {
-			this.ingredient = ingredient;
-			this.result = result;
-			this.count = count;
-			this.steps = steps;
-			this.texture = texture;
-		}
-
-		@Override
-		public void serializeRecipeData(final JsonObject jsonObject) {
-			final var ingredient = new JsonObject();
-
-			ingredient.add("ingredient", this.ingredient.ingredient().toJson());
-			ingredient.addProperty("count", this.ingredient.count());
-
-			jsonObject.add("ingredient", ingredient);
-
-			final var result = new JsonObject();
-			//noinspection DataFlowIssue
-			result.addProperty("item", ForgeRegistries.ITEMS.getKey(this.result).toString());
-			if (this.count > 1) {
-				result.addProperty("count", this.count);
-			}
-
-			jsonObject.add("result", result);
-			jsonObject.addProperty("steps_required", steps);
-
-			jsonObject.addProperty("in_progress_texture", texture.toString());
-		}
-
-		@Override
-		public ResourceLocation getId() {
-			//noinspection DataFlowIssue
-			return ForgeRegistries.ITEMS.getKey(result).withPrefix("loom/");
-		}
-
-		@Override
-		public RecipeSerializer<?> getType() {
-			return TFCRecipeSerializers.LOOM.get();
-		}
-
-		@Nullable
-		@Override
-		public JsonObject serializeAdvancement() {
-			return null;
-		}
-
-		@Nullable
-		@Override
-		public ResourceLocation getAdvancementId() {
-			return null;
-		}
+	private static void saveLoom(final RecipeOutput output, final SizedIngredient ingredient, final Item result, final int count, final int steps,
+			final ResourceLocation texture) {
+		final ResourceLocation id = itemId(result).withPrefix("loom/");
+		output.accept(id, new net.dries007.tfc.common.recipes.LoomRecipe(ingredient, ItemStackProvider.of(result, count), steps, texture), null);
 	}
 
-	public static class AnvilRecipe implements FinishedRecipe {
+	private static void saveAnvil(final RecipeOutput output, final Ingredient input, final ItemStack result, final int tier,
+			final ForgeRule[] rules, final boolean applyForgingBonus, final ResourceLocation requestedId) {
+		final ResourceLocation id = (requestedId == null ? itemId(result.getItem()) : requestedId).withPrefix("anvil/");
+		output.accept(id, new net.dries007.tfc.common.recipes.AnvilRecipe(input, tier, List.of(rules), applyForgingBonus,
+				ItemStackProvider.of(result)), null);
+	}
 
-		private final Ingredient input;
-		private final ItemStack result;
-		private final int tier;
-		private final ForgeRule[] rules;
-		private final boolean applyForgingBonus;
-		private final ResourceLocation id;
-
-		public AnvilRecipe(final Ingredient input, final ItemStack result, final int tier, final ForgeRule[] rules, final boolean applyForgingBonus,
-				final ResourceLocation id) {
-			this.input = input;
-			this.result = result;
-			this.tier = tier;
-			this.rules = rules;
-			this.applyForgingBonus = applyForgingBonus;
-			this.id = id.withPrefix("anvil/");
-		}
-
-		public AnvilRecipe(final Ingredient input, final ItemStack result, final int tier, final ForgeRule[] rules, final boolean applyForgingBonus) {
-			this(input, result, tier, rules, applyForgingBonus, Objects.requireNonNull(ForgeRegistries.ITEMS.getKey(result.getItem())));
-		}
-
-		@Override
-		public void serializeRecipeData(final JsonObject recipe) {
-			recipe.add("input", input.toJson());
-			{
-				final JsonObject result = new JsonObject();
-				//noinspection DataFlowIssue
-				result.addProperty("item", ForgeRegistries.ITEMS.getKey(this.result.getItem()).toString());
-				if (1 < this.result.getCount()) result.addProperty("count", this.result.getCount());
-				recipe.add("result", result);
-			}
-			recipe.addProperty("tier", tier);
-
-			final var rules = new JsonArray();
-			Arrays.stream(this.rules).forEach(forgeRule -> rules.add(forgeRule.name().toLowerCase(Locale.ROOT)));
-			recipe.add("rules", rules);
-
-			recipe.addProperty("apply_forging_bonus", applyForgingBonus);
-		}
-
-		@Override
-		public ResourceLocation getId() {
-			return id;
-		}
-
-		@Override
-		public RecipeSerializer<?> getType() {
-			return TFCRecipeSerializers.ANVIL.get();
-		}
-
-		@Nullable
-		@Override
-		public JsonObject serializeAdvancement() {
-			return null;
-		}
-
-		@Nullable
-		@Override
-		public ResourceLocation getAdvancementId() {
-			return null;
-		}
+	private static ResourceLocation itemId(final Item item) {
+		return Objects.requireNonNull(BuiltInRegistries.ITEM.getKey(item));
 	}
 }

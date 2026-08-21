@@ -1,7 +1,5 @@
 package mod.traister101.sns.datagen.tfc.data;
 
-import net.dries007.tfc.util.Metal.Tier;
-
 import net.minecraft.world.level.material.Fluid;
 
 public interface MetalData {
@@ -14,7 +12,7 @@ public interface MetalData {
 		return 1 / baseHeatCapacity;
 	}
 
-	Tier metalTier();
+	int metalTier();
 
 	Fluid meltMetal();
 

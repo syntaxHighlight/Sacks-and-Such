@@ -1,15 +1,15 @@
 package mod.traister101.sns.datagen.tfc.data;
 
 import com.google.gson.JsonObject;
-import net.dries007.tfc.common.capabilities.size.*;
+import com.mojang.serialization.JsonOps;
+import net.dries007.tfc.common.component.size.*;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.PackOutput.Target;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.Ingredient;
-
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -19,7 +19,7 @@ public abstract class ItemSizeProvider extends SimpleDataProvider {
 	private final String modid;
 
 	public ItemSizeProvider(final PackOutput output, final String modid) {
-		super(output.createPathProvider(Target.DATA_PACK, "tfc/item_sizes"));
+		super(output.createPathProvider(Target.DATA_PACK, "tfc/item_size"));
 		this.modid = modid;
 	}
 
@@ -28,17 +28,17 @@ public abstract class ItemSizeProvider extends SimpleDataProvider {
 	}
 
 	protected final void size(final Item item, final Weight weight, final Size size) {
-		size(Objects.requireNonNull(ForgeRegistries.ITEMS.getKey(item)), Ingredient.of(item), weight, size);
+		size(Objects.requireNonNull(BuiltInRegistries.ITEM.getKey(item)), Ingredient.of(item), weight, size);
 	}
 
 	protected final void size(final String name, final Ingredient ingredient, final Weight weight,
 			@SuppressWarnings("SameParameterValue") final Size size) {
-		size(new ResourceLocation(modid, name), ingredient, weight, size);
+		size(ResourceLocation.fromNamespaceAndPath(modid, name), ingredient, weight, size);
 	}
 
 	protected final void size(final ResourceLocation location, final Ingredient ingredient, final Weight weight, final Size size) {
 		final var jsonObject = new JsonObject();
-		jsonObject.add("ingredient", ingredient.toJson());
+		jsonObject.add("ingredient", Ingredient.CODEC.encodeStart(JsonOps.INSTANCE, ingredient).getOrThrow());
 		jsonObject.addProperty("size", size.name);
 		jsonObject.addProperty("weight", weight.name);
 		add(location, jsonObject);

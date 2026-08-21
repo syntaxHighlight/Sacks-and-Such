@@ -1,47 +1,54 @@
 package mod.traister101.sns.datagen.recipes;
 
-import com.google.common.collect.*;
-import com.google.gson.JsonObject;
-import net.dries007.tfc.common.recipes.TFCRecipeSerializers;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import net.dries007.tfc.common.recipes.AdvancedShapedRecipe;
+import net.dries007.tfc.common.recipes.AdvancedShapelessRecipe;
+import net.dries007.tfc.common.recipes.outputs.DamageCraftingRemainderModifier;
+import net.dries007.tfc.common.recipes.outputs.ItemStackProvider;
 import net.minecraft.advancements.*;
 import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
-import net.minecraft.data.recipes.*;
+import net.minecraft.core.NonNullList;
+import net.minecraft.data.recipes.RecipeBuilder;
+import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.data.advancements.AdvancementSubProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.ItemLike;
-
-import net.minecraftforge.registries.ForgeRegistries;
-
 import org.jetbrains.annotations.Nullable;
-import java.util.*;
-import java.util.function.Consumer;
 
+import java.util.*;
+
+/**
+ * Small recipe builder used by this project's data generator. Recipes that
+ * damage crafting tools are emitted as TFC advanced recipes with the 1.21
+ * crafting-remainder modifier.
+ */
 @SuppressWarnings({"UnusedReturnValue", "unused"})
-public abstract class CraftingRecipeBuilder<B extends CraftingRecipeBuilder<B>> extends net.minecraft.data.recipes.CraftingRecipeBuilder implements
-		RecipeBuilder {
+public abstract class CraftingRecipeBuilder<B extends CraftingRecipeBuilder<B>> implements RecipeBuilder {
 
 	protected final String folderName;
-	protected final CraftingBookCategory craftingBookCategory;
+	protected final CraftingBookCategory category;
 	protected final Item result;
 	protected final int count;
 	protected final Advancement.Builder advancement = Advancement.Builder.recipeAdvancement();
+	private int criterionCount;
 	@Nullable
 	protected String group;
 	protected boolean damageInputs;
 
-	protected CraftingRecipeBuilder(final CraftingBookCategory craftingBookCategory, final String folderName, final ItemLike result,
-			final int count) {
-		this.craftingBookCategory = craftingBookCategory;
+	protected CraftingRecipeBuilder(final String folderName, final ItemLike result, final int count) {
 		this.folderName = folderName;
+		this.category = CraftingBookCategory.MISC;
 		this.result = result.asItem();
 		this.count = count;
 	}
 
 	public static ShapelessCraftingRecipeBuilder shapeless(final ItemLike result) {
-		return shapeless("crafting", result);
+		return shapeless("crafting", result, 1);
 	}
 
 	public static ShapelessCraftingRecipeBuilder shapeless(final ItemLike result, final int count) {
@@ -53,11 +60,11 @@ public abstract class CraftingRecipeBuilder<B extends CraftingRecipeBuilder<B>> 
 	}
 
 	public static ShapelessCraftingRecipeBuilder shapeless(final String folderName, final ItemLike result, final int count) {
-		return new ShapelessCraftingRecipeBuilder(CraftingBookCategory.MISC, folderName, result, count);
+		return new ShapelessCraftingRecipeBuilder(folderName, result, count);
 	}
 
 	public static ShapedCraftingRecipeBuilder shaped(final ItemLike result) {
-		return shaped("crafting", result);
+		return shaped("crafting", result, 1);
 	}
 
 	public static ShapedCraftingRecipeBuilder shaped(final ItemLike result, final int count) {
@@ -69,12 +76,13 @@ public abstract class CraftingRecipeBuilder<B extends CraftingRecipeBuilder<B>> 
 	}
 
 	public static ShapedCraftingRecipeBuilder shaped(final String folderName, final ItemLike result, final int count) {
-		return new ShapedCraftingRecipeBuilder(CraftingBookCategory.MISC, folderName, result, count);
+		return new ShapedCraftingRecipeBuilder(folderName, result, count);
 	}
 
 	@Override
-	public B unlockedBy(final String criterionName, final CriterionTriggerInstance criterionTrigger) {
-		advancement.addCriterion(criterionName, criterionTrigger);
+	public B unlockedBy(final String criterionName, final Criterion<?> criterion) {
+		advancement.addCriterion(criterionName, criterion);
+		criterionCount++;
 		return self();
 	}
 
@@ -90,40 +98,44 @@ public abstract class CraftingRecipeBuilder<B extends CraftingRecipeBuilder<B>> 
 	}
 
 	@Override
-	public void save(final Consumer<FinishedRecipe> finishedRecipeConsumer, final ResourceLocation recipeId) {
+	public void save(final RecipeOutput output, final ResourceLocation recipeId) {
 		ensureValid(recipeId);
-		advancement.parent(ROOT_RECIPE_ADVANCEMENT)
+		final AdvancementHolder advancementHolder = advancement
+				.parent(AdvancementSubProvider.createPlaceholder(ROOT_RECIPE_ADVANCEMENT.toString()))
 				.addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
 				.rewards(AdvancementRewards.Builder.recipe(recipeId))
-				.requirements(RequirementsStrategy.OR);
-		finishedRecipeConsumer.accept(createRecipe(recipeId));
+				.requirements(AdvancementRequirements.Strategy.OR)
+				.build(recipeId.withPrefix("recipes/" + folderName + "/"));
+		output.accept(recipeId, createRecipe(), advancementHolder);
 	}
 
 	@Override
-	public void save(final Consumer<FinishedRecipe> finishedRecipeConsumer) {
-		save(finishedRecipeConsumer, RecipeBuilder.getDefaultRecipeId(getResult()).withPrefix(folderName + "/"));
+	public void save(final RecipeOutput output) {
+		save(output, RecipeBuilder.getDefaultRecipeId(result).withPrefix(folderName + "/"));
 	}
 
-	/**
-	 * Creates a {@link net.dries007.tfc.common.recipes.DamageInputsCraftingRecipe} when set
-	 */
 	public B damageInputs() {
 		damageInputs = true;
 		return self();
 	}
 
-	/**
-	 * Makes sure that this recipe is valid and obtainable.
-	 */
 	protected void ensureValid(final ResourceLocation recipeId) {
-		if (advancement.getCriteria().isEmpty()) {
+		if (criterionCount == 0) {
 			throw new IllegalStateException("No way of obtaining recipe " + recipeId);
 		}
 	}
 
+	protected ItemStackProvider resultProvider() {
+		return ItemStackProvider.of(new ItemStack(result, count));
+	}
+
+	protected Optional<ItemStackProvider> damagedRemainder() {
+		return Optional.of(ItemStackProvider.of(DamageCraftingRemainderModifier.INSTANCE));
+	}
+
 	protected abstract B self();
 
-	protected abstract FinishedRecipe createRecipe(final ResourceLocation recipeId);
+	protected abstract Recipe<?> createRecipe();
 
 	public static final class ShapedCraftingRecipeBuilder extends CraftingRecipeBuilder<ShapedCraftingRecipeBuilder> {
 
@@ -131,94 +143,59 @@ public abstract class CraftingRecipeBuilder<B extends CraftingRecipeBuilder<B>> 
 		private final Map<Character, Ingredient> key = Maps.newLinkedHashMap();
 		private boolean showNotification = true;
 
-		private ShapedCraftingRecipeBuilder(final CraftingBookCategory craftingBookCategory, final String folderName, final ItemLike result,
-				final int count) {
-			super(craftingBookCategory, folderName, result, count);
+		private ShapedCraftingRecipeBuilder(final String folderName, final ItemLike result, final int count) {
+			super(folderName, result, count);
 		}
 
-		/**
-		 * Adds a key to the recipe pattern.
-		 */
 		public ShapedCraftingRecipeBuilder define(final Character symbol, final TagKey<Item> tag) {
 			return define(symbol, Ingredient.of(tag));
 		}
 
-		/**
-		 * Adds a key to the recipe pattern.
-		 */
 		public ShapedCraftingRecipeBuilder define(final Character symbol, final ItemLike item) {
 			return define(symbol, Ingredient.of(item));
 		}
 
-		/**
-		 * Adds a key to the recipe pattern.
-		 */
 		public ShapedCraftingRecipeBuilder define(final Character symbol, final Ingredient ingredient) {
-			if (key.containsKey(symbol)) {
-				throw new IllegalArgumentException("Symbol '" + symbol + "' is already defined!");
+			if (symbol == ' ') throw new IllegalArgumentException("Whitespace is reserved");
+			if (key.putIfAbsent(symbol, ingredient) != null) {
+				throw new IllegalArgumentException("Symbol '" + symbol + "' is already defined");
 			}
-
-			if (symbol == ' ') {
-				throw new IllegalArgumentException("Symbol ' ' (whitespace) is reserved and cannot be defined");
-			}
-
-			key.put(symbol, ingredient);
-			return self();
+			return this;
 		}
 
-		/**
-		 * Adds a new row to the pattern for this recipe.
-		 */
 		public ShapedCraftingRecipeBuilder pattern(final String pattern) {
-			if (!rows.isEmpty() && pattern.length() != rows.get(0).length()) {
-				throw new IllegalArgumentException("Pattern must be the same width on every line!");
+			if (!rows.isEmpty() && pattern.length() != rows.getFirst().length()) {
+				throw new IllegalArgumentException("Pattern must be the same width on every line");
 			}
-
 			rows.add(pattern);
-			return self();
+			return this;
 		}
 
-		/**
-		 * Adds multiple rows to the pattern for this recipe.
-		 */
-		public ShapedCraftingRecipeBuilder pattern(final String... pattern) {
-			Arrays.stream(pattern).forEach(this::pattern);
-			return self();
+		public ShapedCraftingRecipeBuilder pattern(final String... patterns) {
+			Arrays.stream(patterns).forEach(this::pattern);
+			return this;
 		}
 
-		public ShapedCraftingRecipeBuilder showNotification(final boolean showNotification) {
-			this.showNotification = showNotification;
-			return self();
+		public ShapedCraftingRecipeBuilder showNotification(final boolean value) {
+			showNotification = value;
+			return this;
 		}
 
 		@Override
 		protected void ensureValid(final ResourceLocation recipeId) {
 			super.ensureValid(recipeId);
-
-			if (rows.isEmpty()) throw new IllegalStateException("No pattern is defined for shaped recipe " + recipeId + "!");
-
-			final Set<Character> set = Sets.newHashSet(key.keySet());
-			set.remove(' ');
-
-			for (final String pattern : rows) {
-				for (int i = 0; i < pattern.length(); ++i) {
-					final char symbol = pattern.charAt(i);
-					if (!key.containsKey(symbol) && symbol != ' ') {
-						throw new IllegalStateException("Pattern in recipe " + recipeId + " uses undefined symbol '" + symbol + "'");
+			if (rows.isEmpty()) throw new IllegalStateException("No pattern is defined for " + recipeId);
+			final Set<Character> unused = new HashSet<>(key.keySet());
+			for (final String row : rows) {
+				for (int i = 0; i < row.length(); i++) {
+					final char symbol = row.charAt(i);
+					if (symbol != ' ' && !key.containsKey(symbol)) {
+						throw new IllegalStateException("Recipe " + recipeId + " uses undefined symbol '" + symbol + "'");
 					}
-
-					set.remove(symbol);
+					unused.remove(symbol);
 				}
 			}
-
-			if (!set.isEmpty()) {
-				throw new IllegalStateException("Ingredients are defined but not used in pattern for recipe " + recipeId);
-			}
-
-			if (rows.size() == 1 && rows.get(0).length() == 1) {
-				throw new IllegalStateException(
-						"Shaped recipe " + recipeId + " only takes in a single item - should it be a shapeless recipe instead?");
-			}
+			if (!unused.isEmpty()) throw new IllegalStateException("Unused symbols in " + recipeId + ": " + unused);
 		}
 
 		@Override
@@ -227,105 +204,49 @@ public abstract class CraftingRecipeBuilder<B extends CraftingRecipeBuilder<B>> 
 		}
 
 		@Override
-		protected FinishedRecipe createRecipe(final ResourceLocation recipeId) {
-			final var recipe = new ShapedRecipeBuilder.Result(recipeId, result, count, group == null ? "" : group, craftingBookCategory, rows, key,
-					advancement, recipeId.withPrefix("recipes/" + folderName + "/"), showNotification);
-			return damageInputs ? new DamageInputShaped(recipe) : recipe;
-		}
-
-		public static final class DamageInputShaped implements FinishedRecipe {
-
-			private final FinishedRecipe finishedRecipe;
-
-			public DamageInputShaped(final FinishedRecipe finishedRecipe) {
-				this.finishedRecipe = finishedRecipe;
+		protected Recipe<?> createRecipe() {
+			final ShapedRecipePattern pattern = ShapedRecipePattern.of(key, rows);
+			if (damageInputs) {
+				return new AdvancedShapedRecipe(pattern, showNotification, resultProvider(), damagedRemainder(), -1, -1);
 			}
-
-			@Override
-			public void serializeRecipeData(final JsonObject jsonObject) {
-				final JsonObject recipe = new JsonObject();
-				//noinspection DataFlowIssue
-				recipe.addProperty("type", ForgeRegistries.RECIPE_SERIALIZERS.getKey(finishedRecipe.getType()).toString());
-				finishedRecipe.serializeRecipeData(recipe);
-				jsonObject.add("recipe", recipe);
-			}
-
-			@Override
-			public ResourceLocation getId() {
-				return finishedRecipe.getId();
-			}
-
-			@Override
-			public RecipeSerializer<?> getType() {
-				return TFCRecipeSerializers.DAMAGE_INPUT_SHAPED_CRAFTING.get();
-			}
-
-			@Nullable
-			@Override
-			public JsonObject serializeAdvancement() {
-				return finishedRecipe.serializeAdvancement();
-			}
-
-			@Nullable
-			@Override
-			public ResourceLocation getAdvancementId() {
-				return finishedRecipe.getAdvancementId();
-			}
+			return new ShapedRecipe(group == null ? "" : group, category, pattern, new ItemStack(result, count), showNotification);
 		}
 	}
 
 	public static final class ShapelessCraftingRecipeBuilder extends CraftingRecipeBuilder<ShapelessCraftingRecipeBuilder> {
 
-		private final List<Ingredient> ingredients = Lists.newArrayList();
+		private final NonNullList<Ingredient> ingredients = NonNullList.create();
 
-		private ShapelessCraftingRecipeBuilder(final CraftingBookCategory craftingBookCategory, final String folderName, final ItemLike result,
-				final int count) {
-			super(craftingBookCategory, folderName, result, count);
+		private ShapelessCraftingRecipeBuilder(final String folderName, final ItemLike result, final int count) {
+			super(folderName, result, count);
 		}
 
-		/**
-		 * Adds an ingredient that can be any item in the given tag.
-		 */
 		public ShapelessCraftingRecipeBuilder requires(final TagKey<Item> tag) {
 			return requires(Ingredient.of(tag));
 		}
 
-		/**
-		 * Adds an ingredient of the given item.
-		 */
 		public ShapelessCraftingRecipeBuilder requires(final ItemLike item) {
 			return requires(Ingredient.of(item));
 		}
 
-		/**
-		 * Adds the given ingredient multiple times.
-		 */
 		public ShapelessCraftingRecipeBuilder requires(final ItemLike item, final int quantity) {
-			for (int i = 0; i < quantity; ++i) requires(item);
-			return this;
+			return requires(Ingredient.of(item), quantity);
 		}
 
-		/**
-		 * Adds an ingredient.
-		 */
 		public ShapelessCraftingRecipeBuilder requires(final Ingredient ingredient) {
 			ingredients.add(ingredient);
 			return this;
 		}
 
-		/**
-		 * Adds an ingredient multiple times.
-		 */
 		public ShapelessCraftingRecipeBuilder requires(final Ingredient ingredient, final int quantity) {
-			for (int i = 0; i < quantity; ++i) requires(ingredient);
-
+			for (int i = 0; i < quantity; i++) ingredients.add(ingredient);
 			return this;
 		}
 
 		@Override
 		protected void ensureValid(final ResourceLocation recipeId) {
 			super.ensureValid(recipeId);
-			if (ingredients.isEmpty()) throw new IllegalStateException("Recipe must have at least 1 ingredient");
+			if (ingredients.isEmpty()) throw new IllegalStateException("Recipe must have at least one ingredient: " + recipeId);
 		}
 
 		@Override
@@ -334,51 +255,11 @@ public abstract class CraftingRecipeBuilder<B extends CraftingRecipeBuilder<B>> 
 		}
 
 		@Override
-		protected FinishedRecipe createRecipe(final ResourceLocation recipeId) {
-			final var recipe = new ShapelessRecipeBuilder.Result(recipeId, this.result, count, group == null ? "" : group, craftingBookCategory,
-					ingredients, advancement, recipeId.withPrefix("recipes/" + folderName + "/"));
-
-			return damageInputs ? new DamageInputShapeless(recipe) : recipe;
-		}
-
-		public static final class DamageInputShapeless implements FinishedRecipe {
-
-			private final FinishedRecipe finishedRecipe;
-
-			public DamageInputShapeless(final FinishedRecipe finishedRecipe) {
-				this.finishedRecipe = finishedRecipe;
+		protected Recipe<?> createRecipe() {
+			if (damageInputs) {
+				return new AdvancedShapelessRecipe(ingredients, resultProvider(), damagedRemainder(), Optional.empty());
 			}
-
-			@Override
-			public void serializeRecipeData(final JsonObject jsonObject) {
-				final JsonObject recipe = new JsonObject();
-				//noinspection DataFlowIssue
-				recipe.addProperty("type", ForgeRegistries.RECIPE_SERIALIZERS.getKey(finishedRecipe.getType()).toString());
-				finishedRecipe.serializeRecipeData(recipe);
-				jsonObject.add("recipe", recipe);
-			}
-
-			@Override
-			public ResourceLocation getId() {
-				return finishedRecipe.getId();
-			}
-
-			@Override
-			public RecipeSerializer<?> getType() {
-				return TFCRecipeSerializers.DAMAGE_INPUTS_SHAPELESS_CRAFTING.get();
-			}
-
-			@Nullable
-			@Override
-			public JsonObject serializeAdvancement() {
-				return finishedRecipe.serializeAdvancement();
-			}
-
-			@Nullable
-			@Override
-			public ResourceLocation getAdvancementId() {
-				return finishedRecipe.getAdvancementId();
-			}
+			return new ShapelessRecipe(group == null ? "" : group, category, new ItemStack(result, count), ingredients);
 		}
 	}
 }

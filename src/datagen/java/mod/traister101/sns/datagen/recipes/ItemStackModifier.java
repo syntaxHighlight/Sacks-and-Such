@@ -1,38 +1,12 @@
 package mod.traister101.sns.datagen.recipes;
 
-import com.google.gson.*;
-
-import net.minecraft.world.item.Item;
-
-import net.minecraftforge.registries.ForgeRegistries;
-
-import java.util.*;
-
+/** Compatibility wrapper around TFC's codec-backed 1.21 output modifiers. */
+@FunctionalInterface
 public interface ItemStackModifier {
 
-	static ItemStackModifier simple(final String modifierId) {
-		return () -> {
-			final JsonObject jsonObject = new JsonObject();
-			jsonObject.addProperty("type", modifierId);
-			return jsonObject;
-		};
-	}
+	net.dries007.tfc.common.recipes.outputs.ItemStackModifier value();
 
-	static JsonObject writeItemStackProvider(final Item item, final int count, final List<ItemStackModifier> itemStackModifiers) {
-		final var itemResult = new JsonObject();
-		{
-			final var stack = new JsonObject();
-			stack.addProperty("item", Objects.requireNonNull(ForgeRegistries.ITEMS.getKey(item)).toString());
-			if (count > 1) stack.addProperty("count", count);
-			itemResult.add("stack", stack);
-			{
-				final var modifiers = new JsonArray();
-				itemStackModifiers.forEach(stackModifier -> modifiers.add(stackModifier.toJson()));
-				itemResult.add("modifiers", modifiers);
-			}
-		}
-		return itemResult;
+	static ItemStackModifier of(final net.dries007.tfc.common.recipes.outputs.ItemStackModifier modifier) {
+		return () -> modifier;
 	}
-
-	JsonElement toJson();
 }

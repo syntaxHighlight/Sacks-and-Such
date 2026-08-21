@@ -9,17 +9,18 @@ import net.dries007.tfc.TerraFirmaCraft;
 import net.minecraft.advancements.*;
 import net.minecraft.advancements.critereon.InventoryChangeTrigger;
 import net.minecraft.core.HolderLookup.Provider;
+import net.minecraft.data.advancements.AdvancementSubProvider;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
-import net.minecraftforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 import java.util.function.Consumer;
 
 public class TFCStoryAdvancementGenerator implements SmarterAdvancementGenerator {
 
-	private static final ResourceLocation IRON_AGE = new ResourceLocation(TerraFirmaCraft.MOD_ID, "story/iron_age");
-	private static final ResourceLocation STEEL_AGE = new ResourceLocation(TerraFirmaCraft.MOD_ID, "story/steel_age");
+	private static final ResourceLocation IRON_AGE = ResourceLocation.fromNamespaceAndPath(TerraFirmaCraft.MOD_ID, "story/iron_age");
+	private static final ResourceLocation STEEL_AGE = ResourceLocation.fromNamespaceAndPath(TerraFirmaCraft.MOD_ID, "story/steel_age");
 	private static final AdvancementComponent STRAW_BAASKET = advancementComponent("straw_basket");
 	private static final AdvancementComponent LEATHER_SACK = advancementComponent("leather_sack");
 	private static final AdvancementComponent FRAME_PACK = advancementComponent("frame_pack");
@@ -41,61 +42,61 @@ public class TFCStoryAdvancementGenerator implements SmarterAdvancementGenerator
 	}
 
 	@Override
-	public void generate(final Provider registries, final Consumer<Advancement> saver, final ExistingFileHelper existingFileHelper) {
+	public void generate(final Provider registries, final Consumer<AdvancementHolder> saver, final ExistingFileHelper existingFileHelper) {
 		Advancement.Builder.advancement()
-				.parent(new ResourceLocation(TerraFirmaCraft.MOD_ID, "story/get_straw"))
+				.parent(AdvancementSubProvider.createPlaceholder(TerraFirmaCraft.MOD_ID + ":story/get_straw"))
 				.display(SNSItems.STRAW_BASKET.get(), Component.translatable(STRAW_BAASKET.title()),
-						Component.translatable(STRAW_BAASKET.description()), null, FrameType.TASK, true, true, false)
+						Component.translatable(STRAW_BAASKET.description()), null, AdvancementType.TASK, true, true, false)
 				.addCriterion("has_straw_basket", InventoryChangeTrigger.TriggerInstance.hasItems(SNSItems.STRAW_BASKET.get()))
-				.requirements(new String[][] {{"has_straw_basket"}})
+				.requirements(AdvancementRequirements.Strategy.AND)
 				.save(saver, SNSUtils.modLocation("tfc/story/straw_basket"), existingFileHelper);
 
 		Advancement.Builder.advancement()
-				.parent(new ResourceLocation(TerraFirmaCraft.MOD_ID, "story/leather"))
+				.parent(AdvancementSubProvider.createPlaceholder(TerraFirmaCraft.MOD_ID + ":story/leather"))
 				.display(SNSItems.LEATHER_SACK.get(), Component.translatable(LEATHER_SACK.title()),
-						Component.translatable(LEATHER_SACK.description()), null, FrameType.TASK, true, true, false)
+						Component.translatable(LEATHER_SACK.description()), null, AdvancementType.TASK, true, true, false)
 				.addCriterion("has_leather_sack", InventoryChangeTrigger.TriggerInstance.hasItems(SNSItems.LEATHER_SACK.get()))
-				.requirements(new String[][] {{"has_leather_sack"}})
+				.requirements(AdvancementRequirements.Strategy.AND)
 				.save(saver, SNSUtils.modLocation("tfc/story/leather_sack"), existingFileHelper);
 
 		Advancement.Builder.advancement()
-				.parent(IRON_AGE)
+				.parent(AdvancementSubProvider.createPlaceholder(IRON_AGE.toString()))
 				.display(SNSItems.LUNCHBOX.get(), Component.translatable(LUNCHBOX.title()), Component.translatable(LUNCHBOX.description()), null,
-						FrameType.CHALLENGE, true, true, false)
+						AdvancementType.CHALLENGE, true, true, false)
 				.addCriterion("has_lunchbox", InventoryChangeTrigger.TriggerInstance.hasItems(SNSItems.LUNCHBOX.get()))
-				.requirements(new String[][] {{"has_lunchbox"}})
+				.requirements(AdvancementRequirements.Strategy.AND)
 				.save(saver, SNSUtils.modLocation("tfc/story/lunchbox"), existingFileHelper);
 
 		Advancement.Builder.advancement()
-				.parent(IRON_AGE)
+				.parent(AdvancementSubProvider.createPlaceholder(IRON_AGE.toString()))
 				.display(SNSItems.HIKING_BOOTS.get(), Component.translatable(HIKING_BOOTS.title()),
-						Component.translatable(HIKING_BOOTS.description()), null, FrameType.CHALLENGE, true, true, false)
+						Component.translatable(HIKING_BOOTS.description()), null, AdvancementType.CHALLENGE, true, true, false)
 				.addCriterion("has_hiking_boots", InventoryChangeTrigger.TriggerInstance.hasItems(SNSItems.HIKING_BOOTS.get()))
-				.requirements(new String[][] {{"has_hiking_boots"}})
+				.requirements(AdvancementRequirements.Strategy.AND)
 				.save(saver, SNSUtils.modLocation("tfc/story/hiking_boots"), existingFileHelper);
 
 		Advancement.Builder.advancement()
-				.parent(STEEL_AGE)
+				.parent(AdvancementSubProvider.createPlaceholder(STEEL_AGE.toString()))
 				.display(SNSItems.FRAME_PACK.get(), Component.translatable(FRAME_PACK.title()), Component.translatable(FRAME_PACK.description()),
-						null, FrameType.CHALLENGE, true, true, false)
+						null, AdvancementType.CHALLENGE, true, true, false)
 				.addCriterion("has_frame_pack", InventoryChangeTrigger.TriggerInstance.hasItems(SNSItems.FRAME_PACK.get()))
-				.requirements(new String[][] {{"has_frame_pack"}})
+				.requirements(AdvancementRequirements.Strategy.AND)
 				.save(saver, SNSUtils.modLocation("tfc/story/frame_pack"), existingFileHelper);
 
 		Advancement.Builder.advancement()
-				.parent(STEEL_AGE)
+				.parent(AdvancementSubProvider.createPlaceholder(STEEL_AGE.toString()))
 				.display(SNSItems.STEEL_TOE_HIKING_BOOTS.get(), Component.translatable(STEEL_TOE_HIKING_BOOTS.title()),
-						Component.translatable(STEEL_TOE_HIKING_BOOTS.description()), null, FrameType.CHALLENGE, true, true, false)
+						Component.translatable(STEEL_TOE_HIKING_BOOTS.description()), null, AdvancementType.CHALLENGE, true, true, false)
 				.addCriterion("has_steel_toe_hiking_boots", InventoryChangeTrigger.TriggerInstance.hasItems(SNSItems.STEEL_TOE_HIKING_BOOTS.get()))
-				.requirements(new String[][] {{"has_steel_toe_hiking_boots"}})
+				.requirements(AdvancementRequirements.Strategy.AND)
 				.save(saver, SNSUtils.modLocation("tfc/story/steel_toe_hiking_boots"), existingFileHelper);
 
 		Advancement.Builder.advancement()
-				.parent(STEEL_AGE)
+				.parent(AdvancementSubProvider.createPlaceholder(STEEL_AGE.toString()))
 				.display(SNSItems.STEEL_HORSESHOES.get(), Component.translatable(STEEL_HORSESHOES.title()),
-						Component.translatable(STEEL_HORSESHOES.description()), null, FrameType.CHALLENGE, true, true, false)
+						Component.translatable(STEEL_HORSESHOES.description()), null, AdvancementType.CHALLENGE, true, true, false)
 				.addCriterion("has_steel_horseshoes", InventoryChangeTrigger.TriggerInstance.hasItems(SNSItems.STEEL_HORSESHOES.get()))
-				.requirements(new String[][] {{"has_steel_horseshoes"}})
+				.requirements(AdvancementRequirements.Strategy.AND)
 				.save(saver, SNSUtils.modLocation("tfc/story/steel_horseshoes"), existingFileHelper);
 	}
 

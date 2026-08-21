@@ -3,7 +3,7 @@ package mod.traister101.sns.datagen.providers;
 import mod.traister101.sns.SacksNSuch;
 import mod.traister101.sns.common.items.SNSItems;
 import mod.traister101.sns.datagen.tfc.data.ItemSizeProvider;
-import net.dries007.tfc.common.capabilities.size.*;
+import net.dries007.tfc.common.component.size.*;
 
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.item.crafting.Ingredient;

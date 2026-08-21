@@ -1,14 +1,14 @@
 package mod.traister101.sns.datagen.tfc.data;
 
 import com.google.gson.JsonObject;
+import com.mojang.serialization.JsonOps;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.PackOutput.Target;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.Ingredient;
-
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Objects;
 
@@ -17,7 +17,7 @@ public abstract class ItemHeatProvider extends SimpleDataProvider {
 	private final String modid;
 
 	public ItemHeatProvider(final PackOutput output, final String modid) {
-		super(output.createPathProvider(Target.DATA_PACK, "tfc/item_heats"));
+		super(output.createPathProvider(Target.DATA_PACK, "tfc/item_heat"));
 		this.modid = modid;
 	}
 
@@ -37,18 +37,18 @@ public abstract class ItemHeatProvider extends SimpleDataProvider {
 	}
 
 	protected final void heat(final Item item, final float heatCapacity, final float forgingTemp, final float weldingTemp) {
-		heat(Objects.requireNonNull(ForgeRegistries.ITEMS.getKey(item)), Ingredient.of(item), heatCapacity, forgingTemp, weldingTemp);
+		heat(Objects.requireNonNull(BuiltInRegistries.ITEM.getKey(item)), Ingredient.of(item), heatCapacity, forgingTemp, weldingTemp);
 	}
 
 	protected final void heat(final String name, final Ingredient ingredient, final float heatCapacity, final float forgingTemp,
 			final float weldingTemp) {
-		heat(new ResourceLocation(modid, name), ingredient, heatCapacity, forgingTemp, weldingTemp);
+		heat(ResourceLocation.fromNamespaceAndPath(modid, name), ingredient, heatCapacity, forgingTemp, weldingTemp);
 	}
 
 	protected final void heat(final ResourceLocation location, final Ingredient ingredient, final float heatCapacity, final float forgingTemp,
 			final float weldingTemp) {
 		final var jsonObject = new JsonObject();
-		jsonObject.add("ingredient", ingredient.toJson());
+		jsonObject.add("ingredient", Ingredient.CODEC.encodeStart(JsonOps.INSTANCE, ingredient).getOrThrow());
 		jsonObject.addProperty("heat_capacity", heatCapacity);
 		if (0 < forgingTemp) jsonObject.addProperty("forging_temperature", forgingTemp);
 		if (0 < weldingTemp) jsonObject.addProperty("welding_temperature", weldingTemp);

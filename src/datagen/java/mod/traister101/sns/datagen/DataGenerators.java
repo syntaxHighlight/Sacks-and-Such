@@ -9,18 +9,18 @@ import net.minecraft.data.metadata.PackMetadataGenerator;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.metadata.pack.PackMetadataSection;
+import net.minecraft.util.InclusiveRange;
 
-import net.minecraftforge.data.event.GatherDataEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.data.event.GatherDataEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 import lombok.experimental.UtilityClass;
-import java.util.Arrays;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+
+import java.util.Optional;
 
 @UtilityClass
-@Mod.EventBusSubscriber(modid = SacksNSuch.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = SacksNSuch.MODID)
 public final class DataGenerators {
 
 	@SubscribeEvent
@@ -32,13 +32,13 @@ public final class DataGenerators {
 
 		generator.addProvider(true, new PackMetadataGenerator(packOutput).add(PackMetadataSection.TYPE,
 				new PackMetadataSection(Component.translatable(BuiltInLanguage.PACK_DESCRIPTION),
-						DetectedVersion.BUILT_IN.getPackVersion(PackType.CLIENT_RESOURCES),
-						Arrays.stream(PackType.values()).collect(Collectors.toMap(Function.identity(), DetectedVersion.BUILT_IN::getPackVersion)))));
+						DetectedVersion.BUILT_IN.getPackVersion(PackType.SERVER_DATA),
+						Optional.of(new InclusiveRange<>(0, Integer.MAX_VALUE)))));
 
 		final var blockTags = generator.addProvider(event.includeServer(), new BuiltInBlockTags(packOutput, lookupProvider, existingFileHelper));
 		generator.addProvider(event.includeServer(), new BuiltInItemTags(packOutput, lookupProvider, blockTags.contentsGetter(), existingFileHelper));
 		generator.addProvider(event.includeServer(), new BuiltInEntityTags(packOutput, lookupProvider, existingFileHelper));
-		generator.addProvider(event.includeServer(), new BuiltInRecipes(packOutput));
+		generator.addProvider(event.includeServer(), new BuiltInRecipes(packOutput, lookupProvider));
 		generator.addProvider(event.includeServer(), new BuiltInCurios(packOutput, existingFileHelper, lookupProvider));
 		generator.addProvider(event.includeServer(), new BuiltInItemSizes(packOutput));
 		generator.addProvider(event.includeServer(), new BuiltInItemHeats(packOutput));
@@ -47,6 +47,6 @@ public final class DataGenerators {
 
 		generator.addProvider(event.includeClient(), new BuiltInLanguage(packOutput, advancementProvider));
 		generator.addProvider(event.includeClient(), new BuiltInItemModels(packOutput, existingFileHelper));
-		generator.addProvider(event.includeClient(), new BuiltInSpriteSources(packOutput, existingFileHelper));
+		generator.addProvider(event.includeClient(), new BuiltInSpriteSources(packOutput, lookupProvider, existingFileHelper));
 	}
 }

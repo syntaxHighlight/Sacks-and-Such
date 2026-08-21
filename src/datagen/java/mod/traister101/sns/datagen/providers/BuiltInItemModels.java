@@ -6,21 +6,20 @@ import mod.traister101.sns.SacksNSuch;
 import mod.traister101.sns.common.items.SNSItems;
 
 import net.minecraft.data.PackOutput;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.*;
 
-import net.minecraftforge.client.model.generators.*;
-import net.minecraftforge.client.model.generators.loaders.SeparateTransformsModelBuilder;
-import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.registries.ForgeRegistries;
-
+import net.neoforged.neoforge.client.model.generators.*;
+import net.neoforged.neoforge.client.model.generators.loaders.SeparateTransformsModelBuilder;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import java.util.Objects;
 import java.util.function.Supplier;
 
 public class BuiltInItemModels extends ItemModelProvider {
 
-	public static final ResourceLocation SMALL_SACK = new ResourceLocation(SacksNSuch.MODID, "item/held/small_sack");
-	public static final ResourceLocation LARGE_SACK = new ResourceLocation(SacksNSuch.MODID, "item/held/large_sack");
+	public static final ResourceLocation SMALL_SACK = ResourceLocation.fromNamespaceAndPath(SacksNSuch.MODID, "item/held/small_sack");
+	public static final ResourceLocation LARGE_SACK = ResourceLocation.fromNamespaceAndPath(SacksNSuch.MODID, "item/held/large_sack");
 
 	public BuiltInItemModels(final PackOutput output, final ExistingFileHelper existingFileHelper) {
 		super(output, SacksNSuch.MODID, existingFileHelper);
@@ -38,10 +37,10 @@ public class BuiltInItemModels extends ItemModelProvider {
 		basicItem(SNSItems.BOUND_LEATHER_STRIP);
 		basicItem(SNSItems.BUCKLE);
 		basicItem(SNSItems.HIKING_BOOTS);
-		basicItem(SNSItems.STEEL_TOE_HIKING_BOOTS, new ResourceLocation(SacksNSuch.MODID, "item/hiking_boots"));
-		basicItem(SNSItems.BLACK_STEEL_TOE_HIKING_BOOTS, new ResourceLocation(SacksNSuch.MODID, "item/hiking_boots"));
-		basicItem(SNSItems.BLUE_STEEL_TOE_HIKING_BOOTS, new ResourceLocation(SacksNSuch.MODID, "item/hiking_boots"));
-		basicItem(SNSItems.RED_STEEL_TOE_HIKING_BOOTS, new ResourceLocation(SacksNSuch.MODID, "item/hiking_boots"));
+		basicItem(SNSItems.STEEL_TOE_HIKING_BOOTS, ResourceLocation.fromNamespaceAndPath(SacksNSuch.MODID, "item/hiking_boots"));
+		basicItem(SNSItems.BLACK_STEEL_TOE_HIKING_BOOTS, ResourceLocation.fromNamespaceAndPath(SacksNSuch.MODID, "item/hiking_boots"));
+		basicItem(SNSItems.BLUE_STEEL_TOE_HIKING_BOOTS, ResourceLocation.fromNamespaceAndPath(SacksNSuch.MODID, "item/hiking_boots"));
+		basicItem(SNSItems.RED_STEEL_TOE_HIKING_BOOTS, ResourceLocation.fromNamespaceAndPath(SacksNSuch.MODID, "item/hiking_boots"));
 		basicItem(SNSItems.MOB_NET_ITEM);
 		basicItem(SNSItems.STEEL_HORSESHOE);
 		basicItem(SNSItems.STEEL_HORSESHOES);
@@ -90,7 +89,7 @@ public class BuiltInItemModels extends ItemModelProvider {
 
 	@CanIgnoreReturnValue
 	public ItemModelBuilder basicItem(final Item item, final ResourceLocation texture) {
-		return basicItem(Objects.requireNonNull(ForgeRegistries.ITEMS.getKey(item)), texture);
+		return basicItem(Objects.requireNonNull(BuiltInRegistries.ITEM.getKey(item)), texture);
 	}
 
 	@CanIgnoreReturnValue
@@ -105,7 +104,7 @@ public class BuiltInItemModels extends ItemModelProvider {
 
 	@CanIgnoreReturnValue
 	private SeparateTransformsModelBuilder<ItemModelBuilder> iconWithHeldModel(final Item item) {
-		return iconWithHeldModel(Objects.requireNonNull(ForgeRegistries.ITEMS.getKey(item)));
+		return iconWithHeldModel(Objects.requireNonNull(BuiltInRegistries.ITEM.getKey(item)));
 	}
 
 	@CanIgnoreReturnValue
@@ -120,7 +119,7 @@ public class BuiltInItemModels extends ItemModelProvider {
 
 	@CanIgnoreReturnValue
 	private SeparateTransformsModelBuilder<ItemModelBuilder> iconWithHeldModel(final Item item, final ModelFile heldModel) {
-		return iconWithHeldModel(Objects.requireNonNull(ForgeRegistries.ITEMS.getKey(item)), heldModel);
+		return iconWithHeldModel(Objects.requireNonNull(BuiltInRegistries.ITEM.getKey(item)), heldModel);
 	}
 
 	@CanIgnoreReturnValue
@@ -140,7 +139,7 @@ public class BuiltInItemModels extends ItemModelProvider {
 	@CanIgnoreReturnValue
 	@SuppressWarnings("unused")
 	private ItemModelBuilder icon(final Item item) {
-		return icon(Objects.requireNonNull(ForgeRegistries.ITEMS.getKey(item)));
+		return icon(Objects.requireNonNull(BuiltInRegistries.ITEM.getKey(item)));
 	}
 
 	@CanIgnoreReturnValue
@@ -158,12 +157,12 @@ public class BuiltInItemModels extends ItemModelProvider {
 	@CheckReturnValue
 	@SuppressWarnings("unused")
 	private SeparateTransformsModelBuilder<ItemModelBuilder> getTransformedItemModelBuilder(final Item item) {
-		return getTransformedItemModelBuilder(Objects.requireNonNull(ForgeRegistries.ITEMS.getKey(item)));
+		return getTransformedItemModelBuilder(Objects.requireNonNull(BuiltInRegistries.ITEM.getKey(item)));
 	}
 
 	@CheckReturnValue
 	private SeparateTransformsModelBuilder<ItemModelBuilder> getTransformedItemModelBuilder(final ResourceLocation key) {
-		return getBuilder(key.toString()).parent(getExistingFile(new ResourceLocation("forge", "item/default")))
+		return getBuilder(key.toString()).parent(getExistingFile(ResourceLocation.fromNamespaceAndPath("neoforge", "item/default")))
 				.customLoader(SeparateTransformsModelBuilder::begin);
 	}
 }

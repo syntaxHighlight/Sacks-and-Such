@@ -1,21 +1,21 @@
 package mod.traister101.sns.datagen.recipes;
 
-import com.google.gson.JsonObject;
-import net.dries007.tfc.common.recipes.TFCRecipeSerializers;
-
-import net.minecraft.data.recipes.*;
+import net.dries007.tfc.common.recipes.outputs.ItemStackProvider;
+import net.minecraft.data.recipes.RecipeBuilder;
+import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.crafting.*;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.material.Fluid;
-
-import net.minecraftforge.registries.ForgeRegistries;
-
+import net.neoforged.neoforge.fluids.FluidStack;
 import org.jetbrains.annotations.Nullable;
-import java.util.*;
-import java.util.function.Consumer;
 
-public final class HeatingRecipe implements FinishedRecipe {
+import java.util.ArrayList;
+import java.util.List;
+
+/** Fluent wrapper for TFC's codec-backed 1.21 heating recipe. */
+public final class HeatingRecipe {
 
 	private final ResourceLocation recipeId;
 	private final Ingredient input;
@@ -48,7 +48,7 @@ public final class HeatingRecipe implements FinishedRecipe {
 	}
 
 	public static HeatingRecipe cook(final ResourceLocation recipeId, final Ingredient input, final float temperature, final Item result) {
-		return cook(recipeId, input, temperature, result, 0);
+		return cook(recipeId, input, temperature, result, 1);
 	}
 
 	public static HeatingRecipe cook(final ResourceLocation recipeId, final Ingredient input, final float temperature, final Item result,
@@ -65,50 +65,17 @@ public final class HeatingRecipe implements FinishedRecipe {
 		return new HeatingRecipe(recipeId, input, temperature, null, 0, fluid, amount);
 	}
 
-	public HeatingRecipe modifier(final ItemStackModifier stackModifier) {
+	public HeatingRecipe modifier(final ItemStackModifier modifier) {
 		if (resultItem == null) throw new IllegalStateException("This recipe doesn't have an item result");
-		modifiers.add(stackModifier);
+		modifiers.add(modifier);
 		return this;
 	}
 
-	@Override
-	public void serializeRecipeData(final JsonObject recipe) {
-		recipe.add("ingredient", input.toJson());
-		if (resultItem != null) recipe.add("result_item", ItemStackModifier.writeItemStackProvider(resultItem, itemCount, modifiers));
-
-		if (resultFluid != null) {
-			final var fluidResult = new JsonObject();
-			fluidResult.addProperty("fluid", Objects.requireNonNull(ForgeRegistries.FLUIDS.getKey(resultFluid)).toString());
-			if (fluidAmount != 1_000) fluidResult.addProperty("amount", fluidAmount);
-			recipe.add("result_fluid", fluidResult);
-		}
-
-		recipe.addProperty("temperature", temperature);
-	}
-
-	@Override
-	public ResourceLocation getId() {
-		return recipeId;
-	}
-
-	@Override
-	public RecipeSerializer<?> getType() {
-		return TFCRecipeSerializers.HEATING.get();
-	}
-
-	@Nullable
-	@Override
-	public JsonObject serializeAdvancement() {
-		return null;
-	}
-
-	@Nullable
-	@Override
-	public ResourceLocation getAdvancementId() {
-		return null;
-	}
-
-	public void save(final Consumer<FinishedRecipe> writer) {
-		writer.accept(this);
+	public void save(final RecipeOutput output) {
+		final ItemStackProvider itemOutput = resultItem == null
+				? ItemStackProvider.empty()
+				: ItemStackProvider.of(new ItemStack(resultItem, itemCount), modifiers.stream().map(ItemStackModifier::value).toList());
+		final FluidStack fluidOutput = resultFluid == null ? FluidStack.EMPTY : new FluidStack(resultFluid, fluidAmount);
+		output.accept(recipeId, new net.dries007.tfc.common.recipes.HeatingRecipe(input, itemOutput, fluidOutput, temperature, false), null);
 	}
 }

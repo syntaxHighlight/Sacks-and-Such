@@ -7,7 +7,7 @@ import net.dries007.tfc.common.TFCTags.Blocks;
 import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.data.PackOutput;
 
-import net.minecraftforge.common.data.*;
+import net.neoforged.neoforge.common.data.*;
 
 import org.jetbrains.annotations.Nullable;
 import java.util.concurrent.CompletableFuture;
@@ -21,6 +21,6 @@ public class BuiltInBlockTags extends BlockTagsProvider {
 
 	@Override
 	protected void addTags(final Provider provider) {
-		tag(SNSBlockTags.BOOTS_PREVENT_SLOWDOWN).addTag(Blocks.PLANTS);
+		tag(SNSBlockTags.BOOTS_PREVENT_SLOWDOWN).addTag(Blocks.NATURAL_REGROWING_PLANTS);
 	}
 }

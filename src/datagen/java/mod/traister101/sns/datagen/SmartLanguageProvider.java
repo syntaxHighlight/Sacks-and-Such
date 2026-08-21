@@ -3,14 +3,13 @@ package mod.traister101.sns.datagen;
 import com.google.gson.JsonObject;
 
 import net.minecraft.data.*;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.block.Block;
-
-import net.minecraftforge.registries.ForgeRegistries;
 
 import org.jetbrains.annotations.Nullable;
 import java.nio.file.Path;
@@ -47,7 +46,7 @@ public abstract class SmartLanguageProvider implements DataProvider {
 		Arrays.stream(extraLanguageProviders).forEach(extraLanguageProvider -> extraLanguageProvider.addTranslations(this::add));
 		addTranslations();
 
-		for (final var item : getKnownItems()) validateEntry(item.getDescriptionId(), ForgeRegistries.ITEMS.getKey(item));
+		for (final var item : getKnownItems()) validateEntry(item.getDescriptionId(), BuiltInRegistries.ITEM.getKey(item));
 
 		if (!data.isEmpty())
 			return save(cache, output.getOutputFolder(PackOutput.Target.RESOURCE_PACK).resolve(modid).resolve("lang").resolve(locale + ".json"));
@@ -106,7 +105,7 @@ public abstract class SmartLanguageProvider implements DataProvider {
 	}
 
 	public void add(final Enchantment key, final String name) {
-		add(key.getDescriptionId(), name);
+		add(key.description().getString(), name);
 	}
 
 	@SuppressWarnings("unused")

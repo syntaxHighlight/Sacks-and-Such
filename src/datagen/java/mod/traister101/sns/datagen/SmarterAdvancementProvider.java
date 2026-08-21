@@ -3,13 +3,14 @@ package mod.traister101.sns.datagen;
 import mod.traister101.sns.datagen.SmartLanguageProvider.ExtraLanguageProvider;
 
 import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.advancements.*;
 import net.minecraft.resources.ResourceLocation;
 
-import net.minecraftforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -41,13 +42,13 @@ public class SmarterAdvancementProvider extends AdvancementProvider implements E
 
 		/**
 		 * A method used to generate advancements for a mod. Advancements should be
-		 * built via {@link net.minecraftforge.common.extensions.IForgeAdvancementBuilder#save(Consumer, ResourceLocation, ExistingFileHelper)}.
+		 * built via {@link net.neoforged.neoforge.common.extensions.IAdvancementBuilderExtension#save(Consumer, ResourceLocation, ExistingFileHelper)}.
 		 *
 		 * @param registries a lookup for registries and their objects
 		 * @param saver a consumer used to write advancements to a file
 		 * @param existingFileHelper a helper used to find whether a file exists
 		 */
-		void generate(HolderLookup.Provider registries, Consumer<Advancement> saver, ExistingFileHelper existingFileHelper);
+		void generate(HolderLookup.Provider registries, Consumer<AdvancementHolder> saver, ExistingFileHelper existingFileHelper);
 
 		/**
 		 * Creates an {@link AdvancementSubProvider} from this generator.
