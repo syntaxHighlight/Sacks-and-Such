@@ -1,7 +1,7 @@
 package mod.traister101.sns.config.entries;
 
-import net.minecraftforge.common.ForgeConfigSpec.*;
-import net.minecraftforge.common.ForgeConfigSpec.Builder;
+import net.neoforged.neoforge.common.ModConfigSpec.*;
+import net.neoforged.neoforge.common.ModConfigSpec.Builder;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;

@@ -9,12 +9,12 @@ import mod.traister101.sns.util.items.ItemSlot;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.item.ProjectileWeaponItem;
 
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.event.entity.living.LivingFallEvent;
-import net.minecraftforge.event.entity.player.ArrowNockEvent;
-import net.minecraftforge.eventbus.api.*;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
+import net.neoforged.neoforge.event.entity.player.ArrowNockEvent;
+import net.neoforged.bus.api.*;
 
+import java.util.Objects;
 import java.util.Optional;
 
 public final class ForgeEventHandler {
@@ -28,6 +28,7 @@ public final class ForgeEventHandler {
 	}
 
 	@SubscribeEvent
+	@SuppressWarnings("deprecation")
 	public static void onProjectilePrepare(final ArrowNockEvent event) {
 		if (!(event.getBow().getItem() instanceof final ProjectileWeaponItem projectileWeaponItem)) return;
 
@@ -36,9 +37,8 @@ public final class ForgeEventHandler {
 		final var maybeProjectileSlot = SNSUtils.curiosAndInventoryStream(event.getEntity())
 				.flatMap(ItemSlot::stream)
 				.filter(ItemSlot.contains(SNSItems.QUIVER.get()))
-				.map(ItemSlot.extractCapability(ForgeCapabilities.ITEM_HANDLER))
-				.map(LazyOptional::resolve)
-				.flatMap(Optional::stream)
+				.map(ItemSlot.extractCapability(Capabilities.ItemHandler.ITEM))
+				.filter(Objects::nonNull)
 				.map(quiverHandler -> SNSUtils.findFirstInHandler(quiverHandler, supportedProjectile))
 				.flatMap(Optional::stream)
 				.findFirst();
@@ -51,8 +51,8 @@ public final class ForgeEventHandler {
 
 	@SubscribeEvent
 	public static void onEntityFall(final LivingFallEvent event) {
-		final var attribute = event.getEntity().getAttribute(SNSAttributes.EXTRA_FALL_DISTANCE.get());
+		final var attribute = event.getEntity().getAttribute(SNSAttributes.EXTRA_FALL_DISTANCE);
 		if (attribute == null) return;
-		event.setDistance((float) Math.max(0, event.getDistance() - attribute.getValue()));
+		event.setDistance(Math.max(0, event.getDistance() - (float) attribute.getValue()));
 	}
 }

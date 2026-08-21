@@ -1,9 +1,9 @@
 package mod.traister101.sns.config;
 
 import mod.traister101.sns.config.entries.*;
-import net.dries007.tfc.common.capabilities.size.Size;
+import net.dries007.tfc.common.component.size.Size;
 
-import net.minecraftforge.common.ForgeConfigSpec.*;
+import net.neoforged.neoforge.common.ModConfigSpec.*;
 
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;

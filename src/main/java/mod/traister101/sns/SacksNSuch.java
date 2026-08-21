@@ -5,6 +5,7 @@ import mod.traister101.sns.client.*;
 import mod.traister101.sns.common.SNSCreativeTab;
 import mod.traister101.sns.common.attribute.SNSAttributes;
 import mod.traister101.sns.common.capability.LunchboxFoodTrait;
+import mod.traister101.sns.common.capability.SNSCapabilities;
 import mod.traister101.sns.common.items.SNSItems;
 import mod.traister101.sns.common.menu.SNSMenus;
 import mod.traister101.sns.config.SNSConfig;
@@ -13,14 +14,13 @@ import org.slf4j.Logger;
 
 import net.minecraft.resources.ResourceLocation;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.EntityAttributeModificationEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.EntityAttributeModificationEvent;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 
 @SuppressWarnings("FieldMayBeFinal")
 @Mod(SacksNSuch.MODID)
@@ -30,28 +30,30 @@ public final class SacksNSuch {
 	public static final String NAME = "Sacks 'N Such";
 	public static final Logger LOGGER = LogUtils.getLogger();
 
-	public SacksNSuch() {
-		final IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
+	public SacksNSuch(final IEventBus modBus, final ModContainer container, final Dist dist) {
 		modBus.addListener(SacksNSuch::commonSetup);
 		modBus.addListener(SacksNSuch::addEntityAttributes);
+		modBus.addListener(SNSCapabilities::register);
+		modBus.addListener(SNSPacketHandler::register);
 
 		SNSItems.ITEMS.register(modBus);
 		SNSMenus.MENUS.register(modBus);
 		SNSCreativeTab.CREATIVE_TABS.register(modBus);
 		SNSAttributes.ATTRIBUTES.register(modBus);
+		LunchboxFoodTrait.TRAITS.register(modBus);
 
-		SNSConfig.init();
+		SNSConfig.init(container);
 		SNSPacketHandler.init();
-		ForgeEventHandler.init(MinecraftForge.EVENT_BUS);
+		ForgeEventHandler.init(NeoForge.EVENT_BUS);
 
-		if (FMLEnvironment.dist == Dist.CLIENT) {
+		if (dist == Dist.CLIENT) {
 			ClientEventHandler.init(modBus);
-			ClientForgeEventHandler.init(MinecraftForge.EVENT_BUS);
+			ClientForgeEventHandler.init(NeoForge.EVENT_BUS);
 		}
 	}
 
 	public static ResourceLocation location(final String path) {
-		return new ResourceLocation(MODID, path);
+		return ResourceLocation.fromNamespaceAndPath(MODID, path);
 	}
 
 	private static void commonSetup(final FMLCommonSetupEvent event) {
@@ -59,6 +61,6 @@ public final class SacksNSuch {
 	}
 
 	private static void addEntityAttributes(final EntityAttributeModificationEvent event) {
-		event.getTypes().forEach(entityType -> event.add(entityType, SNSAttributes.EXTRA_FALL_DISTANCE.get()));
+		event.getTypes().forEach(entityType -> event.add(entityType, SNSAttributes.EXTRA_FALL_DISTANCE));
 	}
 }

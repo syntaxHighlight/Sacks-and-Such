@@ -4,11 +4,12 @@ import com.mojang.logging.LogUtils;
 import mod.traister101.sns.SacksNSuch;
 import mod.traister101.sns.common.SNSEntityTags;
 import mod.traister101.sns.config.SNSConfig;
-import net.dries007.tfc.common.capabilities.size.*;
+import net.dries007.tfc.common.component.size.*;
 import net.dries007.tfc.common.entities.livestock.TFCAnimalProperties;
 import org.slf4j.Logger;
 
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -17,12 +18,13 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.Entity.RemovalReason;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.*;
 
-import net.minecraftforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 public class MobNetItem extends Item implements IItemSize {
 
@@ -38,6 +40,19 @@ public class MobNetItem extends Item implements IItemSize {
 		super(properties);
 	}
 
+	private static CompoundTag capturedMob(final ItemStack stack) {
+		final CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+		return tag.contains(CAPTURED_MOB_KEY) ? tag.getCompound(CAPTURED_MOB_KEY) : null;
+	}
+
+	private static void setCapturedMob(final ItemStack stack, final CompoundTag mobTag) {
+		CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.put(CAPTURED_MOB_KEY, mobTag));
+	}
+
+	private static boolean hasCapturedMob(final ItemStack stack) {
+		return capturedMob(stack) != null;
+	}
+
 	@Override
 	public InteractionResult useOn(final UseOnContext context) {
 		final Direction direction = context.getClickedFace();
@@ -45,7 +60,7 @@ public class MobNetItem extends Item implements IItemSize {
 
 		final Level level = context.getLevel();
 		final ItemStack heldStack = context.getItemInHand();
-		final CompoundTag capturedMobTag = heldStack.getTagElement(CAPTURED_MOB_KEY);
+		final CompoundTag capturedMobTag = capturedMob(heldStack);
 		if (capturedMobTag == null) return InteractionResult.FAIL;
 
 		final Vec3 clickLocation = context.getClickLocation();
@@ -76,9 +91,8 @@ public class MobNetItem extends Item implements IItemSize {
 
 		if (!level.isClientSide) {
 			if (player != null) {
-				heldStack.removeTagKey(CAPTURED_MOB_KEY);
+				CustomData.update(DataComponents.CUSTOM_DATA, heldStack, tag -> tag.remove(CAPTURED_MOB_KEY));
 				if (player.getRandom().nextFloat() < 0.75) {
-					player.broadcastBreakEvent(context.getHand());
 					heldStack.shrink(1);
 				} else {
 					player.setItemInHand(context.getHand(), heldStack);
@@ -121,10 +135,10 @@ public class MobNetItem extends Item implements IItemSize {
 
 		if (itemStack.getCount() > 1) {
 			final ItemStack split = itemStack.split(1);
-			split.getOrCreateTag().put(CAPTURED_MOB_KEY, compoundTag);
+			setCapturedMob(split, compoundTag);
 			ItemHandlerHelper.giveItemToPlayer(player, split);
 		} else {
-			itemStack.getOrCreateTag().put(CAPTURED_MOB_KEY, compoundTag);
+			setCapturedMob(itemStack, compoundTag);
 		}
 
 		livingEntity.remove(RemovalReason.KILLED);
@@ -133,7 +147,7 @@ public class MobNetItem extends Item implements IItemSize {
 
 	@Override
 	public Component getName(final ItemStack itemStack) {
-		final CompoundTag capturedMobTag = itemStack.getTagElement(CAPTURED_MOB_KEY);
+		final CompoundTag capturedMobTag = capturedMob(itemStack);
 		if (capturedMobTag == null) return super.getName(itemStack);
 
 		return EntityType.by(capturedMobTag)
@@ -143,16 +157,16 @@ public class MobNetItem extends Item implements IItemSize {
 
 	@Override
 	public Size getSize(final ItemStack itemStack) {
-		return itemStack.hasTag() ? Size.HUGE : Size.LARGE;
+		return hasCapturedMob(itemStack) ? Size.HUGE : Size.LARGE;
 	}
 
 	@Override
 	public Weight getWeight(final ItemStack itemStack) {
-		return itemStack.hasTag() ? Weight.VERY_HEAVY : Weight.MEDIUM;
+		return hasCapturedMob(itemStack) ? Weight.VERY_HEAVY : Weight.MEDIUM;
 	}
 
 	@Override
 	public int getMaxStackSize(final ItemStack itemStack) {
-		return itemStack.hasTag() ? 1 : 16;
+		return hasCapturedMob(itemStack) ? 1 : 16;
 	}
 }

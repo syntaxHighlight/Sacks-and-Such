@@ -5,7 +5,7 @@ import mod.traister101.sns.common.items.HikingBootsItem.BootModelType;
 
 import net.minecraft.Util;
 
-import net.minecraftforge.common.ForgeConfigSpec.*;
+import net.neoforged.neoforge.common.ModConfigSpec.*;
 
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -27,10 +27,10 @@ public final class ClientConfig {
 				.define("displayItemContentsAsImages", true);
 		openItemContainerCuriosPriorities = builder.comment(
 						"A list of curio slot identifiers ordered by highest priority to lowest priority. The default config will skip over anything in the back slot (useful when wearing a quiver). Additionally for you pack devs this is the actual curio slot identifier meaning custom slots will Just WorkTM")
-				.defineList("openItemContainerCuriosPriorities", () -> Util.make(new ArrayList<>(), l -> {
+				.defineListAllowEmpty("openItemContainerCuriosPriorities", () -> Util.make(new ArrayList<>(), l -> {
 					l.add("belt");
 					l.add("back");
-				}), String.class::isInstance);
+				}), () -> "belt", String.class::isInstance);
 		bootModelType = builder.comment(
 						"Config for which hiking boots model is used. FANCY for the full 3D model, NO_FLOOF for only toes and VANILLA for the vanilla style model")
 				.defineEnum("bootModelType", BootModelType.FANCY);
