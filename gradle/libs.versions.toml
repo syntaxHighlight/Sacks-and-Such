@@ -1,35 +1,28 @@
 [versions]
 githubPackages = "1.2.1"
-modDevGradle = "2.0.107"
+modDevGradle = "2.0.143"
 # Mappings
-parchment = "2023.09.03"
-parchmentMinecraft = "1.20.1"
+parchment = "2024.11.17"
+parchmentMinecraft = "1.21.1"
 # Dependencies
-minecraft = "1.20.1"
-forge = "47.1.3"
-patchouli = "1.20.1-81-FORGE"
+minecraft = "1.21.1"
+neoforge = "21.1.244"
+patchouli = "1.21.1-93-NEOFORGE"
 mixin = "0.8.5"
 mixinExtras = "0.5.0"
-extendedSlotCapacity = "1.4"
-jei = "15.2.0.21"
-lombok = "1.18.36"
-curios = "5.9.0+1.20.1"
-# Stupid dependecies
-tfcFileId = "5943050"
-jadeFileId = "4614153"
+lombok = "1.18.46"
+curios = "9.5.1+1.21.1"
+tfc = "p6g4aaMv"
 
 [libraries]
 lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
-jei = { group = "mezz.jei", name = "jei-1.20.1-forge", version.ref = "jei" }
-jade = { group = "curse.maven", name = "jade-324717", version.ref = "jadeFileId" }
-tfc = { group = "curse.maven", name = "terrafirmacraft-302973", version.ref = "tfcFileId" }
+tfc = { group = "maven.modrinth", name = "JaCEZUhg", version.ref = "tfc" }
 mixin = { group = "org.spongepowered", name = "mixin", version.ref = "mixin" }
 mixinExtras-common = { group = "io.github.llamalad7", name = "mixinextras-common", version.ref = "mixinExtras" }
-mixinExtras-forge = { group = "io.github.llamalad7", name = "mixinextras-forge", version.ref = "mixinExtras" }
-extendedSlotCapacity = { group = "mod.traister101", name = "Extended-Slot-Capacity-1.20.1", version.ref = "extendedSlotCapacity" }
-curios = { group = "top.theillusivec4.curios", name = "curios-forge", version.ref = "curios" }
+mixinExtras-neoforge = { group = "io.github.llamalad7", name = "mixinextras-neoforge", version.ref = "mixinExtras" }
+curios = { group = "top.theillusivec4.curios", name = "curios-neoforge", version.ref = "curios" }
 patchouli = { group = "vazkii.patchouli", name = "Patchouli", version.ref = "patchouli" }
 
 [plugins]
 githubPackages = { id = "io.github.0ffz.github-packages", version.ref = "githubPackages" }
-modDevGradle = { id = "net.neoforged.moddev.legacyforge", version.ref = "modDevGradle" }
+modDevGradle = { id = "net.neoforged.moddev", version.ref = "modDevGradle" }

@@ -53,8 +53,7 @@ base {
 }
 
 java {
-    // Mojang ships Java 17 to end users in 1.18+, so your mod should target Java 17.
-    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 }
 
 println(
@@ -81,13 +80,8 @@ configurations {
     get("datagenRuntimeClasspath").extendsFrom(runtimeClasspath.get())
 }
 
-mixin {
-    add(sourceSets.main.get(), "sacks-n-such.refmap.json")
-    config(mixinConfig)
-}
-
-legacyForge {
-    version = "${libs.versions.minecraft.get()}-${libs.versions.forge.get()}"
+neoForge {
+    version = libs.versions.neoforge.get()
     addModdingDependenciesTo(sourceSets["datagen"])
     ideSyncTask(generateModMetadata)
 
@@ -105,7 +99,7 @@ legacyForge {
     runs {
         configureEach {
             systemProperty("forge.logging.markers", "REGISTRIES")
-            systemProperty("forge.logging.console.level", "debug")
+            logLevel = org.slf4j.event.Level.DEBUG
 
             if (useAdvancedClassRedef) {
                 jvmArgument("-XX:+AllowEnhancedClassRedefinition")
@@ -118,14 +112,14 @@ legacyForge {
 
             jvmArguments.addAll("-ea", "-Xmx4G", "-Xms4G")
 
-            systemProperty("forge.enabledGameTestNamespaces", modID)
+            systemProperty("neoforge.enabledGameTestNamespaces", modID)
         }
 
         register("server") {
             server()
             gameDirectory = file("run/server")
 
-            programArgument("-nogui")
+            programArgument("--nogui")
         }
 
         register("datagen") {
@@ -161,6 +155,15 @@ repositories {
             includeGroup("curse.maven")
         }
     }
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "Modrinth"
+                url = uri("https://api.modrinth.com/maven")
+            }
+        }
+        filter { includeGroup("maven.modrinth") }
+    }
     maven {
         name = "BlameJared maven"
         url = uri("https://maven.blamejared.com/")
@@ -185,48 +188,26 @@ repositories {
             includeGroup("vazkii.patchouli")
         }
     }
-    // https://github.com/Traister101/ExtendedSlotCapacity
-    githubPackage("traister101/ExtendedSlotCapacity") {
-        name = "Extended Slot Capacity"
-        content {
-            includeGroup("mod.traister101")
-        }
-    }
 }
 
 dependencies {
     "datagenImplementation"(sourceSets["main"].output)
-    modApi("org.jetbrains:annotations:24.0.0")
+    api("org.jetbrains:annotations:24.0.0")
 
     // Lombok because yes
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
 
     // TFC
-    modImplementation(libs.tfc)
-
-    annotationProcessor(libs.mixin) {
-        artifact {
-            classifier = "processor"
-        }
-    }
+    implementation(libs.tfc)
 
     // Mixin Extras
     annotationProcessor(libs.mixinExtras.common)
     compileOnly(libs.mixinExtras.common)
-    implementation(libs.mixinExtras.forge)
-    jarJar(libs.mixinExtras.forge) {
+    implementation(libs.mixinExtras.neoforge)
+    jarJar(libs.mixinExtras.neoforge) {
         version {
-            strictly("[${libs.versions.mixinExtras.get()},)")
-            prefer(libs.versions.mixinExtras.get())
-        }
-    }
-
-    modImplementation(libs.extendedSlotCapacity)
-    jarJar(libs.extendedSlotCapacity) {
-        version {
-            strictly("[${libs.versions.extendedSlotCapacity.get()},)")
-            prefer(libs.versions.extendedSlotCapacity.get())
+            strictly(libs.versions.mixinExtras.get())
         }
     }
 
@@ -236,17 +217,11 @@ dependencies {
             classifier = "api"
         }
     }
-    modRuntimeOnly(libs.patchouli)
-
-    // Jade
-    modRuntimeOnly(libs.jade)
-
-    // JEI
-    modRuntimeOnly(libs.jei)
+    runtimeOnly(libs.patchouli)
 
     // Curios
-    modCompileOnly(libs.curios)
-    modRuntimeOnly(libs.curios)
+    compileOnly(variantOf(libs.curios) { classifier("api") })
+    runtimeOnly(libs.curios)
 }
 
 idea {
@@ -263,10 +238,6 @@ idea {
 }
 
 tasks {
-    named("neoForgeIdeSync") {
-        dependsOn(generateModMetadata)
-    }
-
     jar {
         from(sourceSets["datagen"].output)
         manifest {
@@ -278,7 +249,6 @@ tasks {
             attributes["Implementation-Vendor"] = "traister101"
             attributes["MixinConfigs"] = mixinConfig
         }
-        finalizedBy("reobfJar")
     }
 
     processResources {

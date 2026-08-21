@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[47,)"
+loaderVersion = "[4,)"
 license = "MIT"
 issueTrackerURL = "https://github.com/Traister101/Sacks-and-Such/issues"
 
@@ -14,41 +14,37 @@ description = '''An addon for TFC focusing on bringing vessel like handheld cont
 
 [[dependencies.${modId}]]
 modId = "tfc"
-mandatory = true
-versionRange = "[3.2.11,)"
+type = "required"
+versionRange = "[4.2.4,)"
 ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.${modId}]]
-modId = "forge"
-mandatory = true
-versionRange = "[47,)"
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1,)"
 ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.${modId}]]
 modId = "curios"
-mandatory = false
-versionRange = "[5.4.5,)"
+type = "optional"
+versionRange = "[9.5.1,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.${modId}]]
-modId = "esc"
-mandatory = true
-versionRange = "[1.2,)"
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.21.2)"
 ordering = "AFTER"
 side = "BOTH"
 
-[[dependencies.${modId}]]
-modId = "minecraft"
-mandatory = true
-versionRange = "[1.20.1,1.20.2)"
-ordering = "AFTER"
-side = "BOTH"
+[[mixins]]
+config = "sacks-n-such.mixins.json"
 
 [mc-publish]
 dependencies = [
-	"tfc@3.2.11{modrinth:JaCEZUhg}{curseforge:302973}",
-	"curios@5.4.5(optional){modrinth:vvuO3ImH}{curseforge:309927}"
+	"tfc@4.2.4{modrinth:JaCEZUhg}{curseforge:302973}",
+	"curios@9.5.1(optional){modrinth:vvuO3ImH}{curseforge:309927}"
 ]
