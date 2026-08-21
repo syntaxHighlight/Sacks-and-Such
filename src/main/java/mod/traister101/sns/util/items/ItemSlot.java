@@ -7,9 +7,8 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.*;
 
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
+import net.neoforged.neoforge.capabilities.ItemCapability;
+import net.neoforged.neoforge.items.IItemHandler;
 
 import org.jetbrains.annotations.*;
 import java.util.function.*;
@@ -41,7 +40,7 @@ public sealed interface ItemSlot permits ItemContainerSlot, ItemHandlerSlot {
 	/**
 	 * @param capability The capability to extract
 	 */
-	static <T> Function<ItemSlot, LazyOptional<T>> extractCapability(final Capability<T> capability) {
+	static <T> Function<ItemSlot, @Nullable T> extractCapability(final ItemCapability<T, Void> capability) {
 		return slot -> slot.getStack().getCapability(capability);
 	}
 

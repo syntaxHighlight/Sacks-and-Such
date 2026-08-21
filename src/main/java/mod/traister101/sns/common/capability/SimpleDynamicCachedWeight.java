@@ -1,11 +1,11 @@
 package mod.traister101.sns.common.capability;
 
 import mod.traister101.sns.util.items.ItemSlot;
-import net.dries007.tfc.common.capabilities.size.Weight;
+import net.dries007.tfc.common.component.size.Weight;
 
 import net.minecraft.world.item.ItemStack;
 
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.neoforged.neoforge.capabilities.Capabilities;
 
 import lombok.*;
 import org.jetbrains.annotations.Nullable;
@@ -21,7 +21,8 @@ public class SimpleDynamicCachedWeight implements DynamicWeight {
 	private Weight cachedWeight;
 
 	public static Weight percentageWeight(final ItemStack itemStack) {
-		return itemStack.getCapability(ForgeCapabilities.ITEM_HANDLER).map(handler -> {
+		final var handler = itemStack.getCapability(Capabilities.ItemHandler.ITEM);
+		if (handler != null) {
 			@Value
 			class TotalAndMax {
 
@@ -56,7 +57,8 @@ public class SimpleDynamicCachedWeight implements DynamicWeight {
 			}
 
 			return Weight.VERY_LIGHT;
-		}).orElse(Weight.VERY_HEAVY);
+		}
+		return Weight.VERY_HEAVY;
 	}
 
 	@Override

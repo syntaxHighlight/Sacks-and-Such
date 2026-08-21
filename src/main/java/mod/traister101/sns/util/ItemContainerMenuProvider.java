@@ -1,8 +1,6 @@
 package mod.traister101.sns.util;
 
 import mod.traister101.sns.util.ItemSlotData.*;
-import net.dries007.tfc.util.Helpers;
-
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -10,7 +8,7 @@ import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.*;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 
-import net.minecraftforge.network.IContainerFactory;
+import net.neoforged.neoforge.network.IContainerFactory;
 
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.Nullable;
@@ -38,7 +36,10 @@ public class ItemContainerMenuProvider {
 		if (!(playerIn instanceof ServerPlayer serverPlayer)) return;
 		final var title = name == null ? slotData.stack(serverPlayer).getHoverName() : name;
 		final var provider = new SimpleMenuProvider((windowId, inventory, unused) -> this.factory.create(windowId, inventory, slotData), title);
-		Helpers.openScreen(serverPlayer, provider, additionalData.andThen(slotData::write));
+		serverPlayer.openMenu(provider, buffer -> {
+			additionalData.accept(buffer);
+			slotData.write(buffer);
+		});
 	}
 
 	@FunctionalInterface

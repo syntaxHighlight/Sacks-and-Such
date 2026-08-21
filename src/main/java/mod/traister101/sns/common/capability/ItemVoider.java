@@ -1,10 +1,7 @@
 package mod.traister101.sns.common.capability;
 
-import net.minecraftforge.common.capabilities.AutoRegisterCapability;
-
 import java.util.function.IntConsumer;
 
-@AutoRegisterCapability
 public interface ItemVoider {
 
 	/**

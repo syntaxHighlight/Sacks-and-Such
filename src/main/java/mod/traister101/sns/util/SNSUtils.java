@@ -6,9 +6,9 @@ import mod.traister101.sns.common.items.SNSItems;
 import mod.traister101.sns.compat.curios.CuriosUtils;
 import mod.traister101.sns.network.*;
 import mod.traister101.sns.util.items.*;
-import top.theillusivec4.curios.api.CuriosApi;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ByIdMap;
@@ -16,11 +16,11 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.*;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.items.IItemHandler;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.fml.ModList;
+import net.neoforged.neoforge.items.IItemHandler;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -28,15 +28,13 @@ import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 
-import static net.minecraft.world.item.ItemStack.ATTRIBUTE_MODIFIER_FORMAT;
-
 @Slf4j
 public final class SNSUtils {
 
 	public static final String ENABLED = SacksNSuch.MODID + ".enabled";
 	public static final String DISABLED = SacksNSuch.MODID + ".disabled";
 
-	public static final boolean CURIOS_LOADED = ModList.get().isLoaded(CuriosApi.MODID);
+	public static final boolean CURIOS_LOADED = ModList.get().isLoaded("curios");
 
 	public static void sendTogglePacket(final ToggleType toggleType, final boolean flag) {
 		SNSPacketHandler.sendToServer(new ServerboundTogglePacket(flag, toggleType));
@@ -48,7 +46,7 @@ public final class SNSUtils {
 	}
 
 	public static ResourceLocation modLocation(final String name) {
-		return new ResourceLocation(SacksNSuch.MODID, name);
+		return ResourceLocation.fromNamespaceAndPath(SacksNSuch.MODID, name);
 	}
 
 	public static MutableComponent intComponent(final int i) {
@@ -64,7 +62,7 @@ public final class SNSUtils {
 	}
 
 	public static Iterable<IItemHandler> curiosAndInventory(final LivingEntity entity) {
-		final var inventory = entity.getCapability(ForgeCapabilities.ITEM_HANDLER).resolve();
+		final var inventory = Optional.ofNullable(entity.getCapability(Capabilities.ItemHandler.ENTITY));
 		if (isCuriosPresent()) {
 			return Stream.of(inventory, CuriosUtils.getEquippedCurios(entity)).flatMap(Optional::stream)::iterator;
 		}
@@ -87,7 +85,7 @@ public final class SNSUtils {
 			// Already full
 			if (currentStack.getCount() >= currentStack.getMaxStackSize()) continue;
 			// Can merge stacks
-			if (!ItemStack.isSameItemSameTags(currentStack, insertStack)) continue;
+			if (!ItemStack.isSameItemSameComponents(currentStack, insertStack)) continue;
 
 			insertStack = handlerSlot.insertItem(insertStack, false);
 			if (insertStack.isEmpty()) return ItemStack.EMPTY;
@@ -109,13 +107,13 @@ public final class SNSUtils {
 	 * @param tooltip The tooltip
 	 * @param attributeModifiers The attribute modifiers
 	 */
-	public static void attributeTooltips(final List<Component> tooltip, final Multimap<Attribute, AttributeModifier> attributeModifiers) {
+	public static void attributeTooltips(final List<Component> tooltip, final Multimap<Holder<Attribute>, AttributeModifier> attributeModifiers) {
 		for (final var entry : attributeModifiers.entries()) {
 			final var modifier = entry.getValue();
-			final var amount = modifier.getAmount();
+			final var amount = modifier.amount();
 
 			final double displayAmount;
-			if (modifier.getOperation() != Operation.MULTIPLY_BASE && modifier.getOperation() != Operation.MULTIPLY_TOTAL) {
+			if (modifier.operation() != Operation.ADD_MULTIPLIED_BASE && modifier.operation() != Operation.ADD_MULTIPLIED_TOTAL) {
 				if (entry.getKey().equals(Attributes.KNOCKBACK_RESISTANCE)) {
 					displayAmount = amount * 10;
 				} else {
@@ -126,12 +124,12 @@ public final class SNSUtils {
 			}
 
 			if (amount > 0) {
-				tooltip.add(Component.translatable("attribute.modifier.plus." + modifier.getOperation().toValue(),
-								ATTRIBUTE_MODIFIER_FORMAT.format(displayAmount), Component.translatable(entry.getKey().getDescriptionId()))
+				tooltip.add(Component.translatable("attribute.modifier.plus." + modifier.operation().id(),
+								ItemAttributeModifiers.ATTRIBUTE_MODIFIER_FORMAT.format(displayAmount), Component.translatable(entry.getKey().value().getDescriptionId()))
 						.withStyle(ChatFormatting.BLUE));
 			} else if (amount < 0) {
-				tooltip.add(Component.translatable("attribute.modifier.take." + modifier.getOperation().toValue(),
-								ATTRIBUTE_MODIFIER_FORMAT.format(displayAmount * -1), Component.translatable(entry.getKey().getDescriptionId()))
+				tooltip.add(Component.translatable("attribute.modifier.take." + modifier.operation().id(),
+								ItemAttributeModifiers.ATTRIBUTE_MODIFIER_FORMAT.format(displayAmount * -1), Component.translatable(entry.getKey().value().getDescriptionId()))
 						.withStyle(ChatFormatting.RED));
 			}
 		}
@@ -150,9 +148,8 @@ public final class SNSUtils {
 	public static Optional<ItemHandlerSlot> findFirstSlotInQuiver(final LivingEntity livingEntity, final Predicate<ItemStack> supportedProjectile) {
 		return curiosAndInventoryStream(livingEntity).flatMap(ItemSlot::stream)
 				.filter(ItemSlot.contains(SNSItems.QUIVER.get()))
-				.map(ItemSlot.extractCapability(ForgeCapabilities.ITEM_HANDLER))
-				.map(LazyOptional::resolve)
-				.flatMap(Optional::stream)
+				.map(ItemSlot.extractCapability(Capabilities.ItemHandler.ITEM))
+				.filter(Objects::nonNull)
 				.map(quiverHandler -> findFirstInHandler(quiverHandler, supportedProjectile))
 				.flatMap(Optional::stream)
 				.findFirst();

@@ -5,11 +5,8 @@ import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
-import net.minecraftforge.common.capabilities.AutoRegisterCapability;
-
 import org.jetbrains.annotations.Nullable;
 
-@AutoRegisterCapability
 public interface FoodHolder {
 
 	/**

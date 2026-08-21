@@ -1,13 +1,12 @@
 package mod.traister101.sns.common.capability;
 
-import mod.traister101.esc.common.capability.ExtendedSlotCapacityHandler;
 import mod.traister101.sns.config.SNSConfig;
 import mod.traister101.sns.util.ContainerType;
-import net.dries007.tfc.common.capabilities.size.*;
+import net.dries007.tfc.common.component.size.*;
 
 import net.minecraft.world.item.ItemStack;
 
-import net.minecraftforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 public class ContainerItemHandler extends ExtendedSlotCapacityHandler {
 
@@ -15,7 +14,7 @@ public class ContainerItemHandler extends ExtendedSlotCapacityHandler {
 	private final ItemStack owner;
 
 	public ContainerItemHandler(final ContainerType type, final ItemStack owner) {
-		super(type.slotCount(), type.slotCapacity());
+		super(owner, type.slotCount(), type.slotCapacity());
 		this.type = type;
 		this.owner = owner;
 	}
@@ -30,8 +29,9 @@ public class ContainerItemHandler extends ExtendedSlotCapacityHandler {
 
 		if (!type.doesVoiding()) return remainder;
 
-		if (owner.getCapability(SNSCapabilities.ITEM_VOIDER).map(itemVoider -> itemVoider.shouldSlotVoid(slotIndex)).orElse(false)) {
-			if (ItemHandlerHelper.canItemStacksStack(insertStack, getStackInSlot(slotIndex))) return ItemStack.EMPTY;
+		final ItemVoider itemVoider = owner.getCapability(SNSCapabilities.ITEM_VOIDER);
+		if (itemVoider != null && itemVoider.shouldSlotVoid(slotIndex)) {
+			if (ItemStack.isSameItemSameComponents(insertStack, getStackInSlot(slotIndex))) return ItemStack.EMPTY;
 		}
 
 		return remainder;
@@ -45,10 +45,10 @@ public class ContainerItemHandler extends ExtendedSlotCapacityHandler {
 	}
 
 	@Override
-	protected void onContentsChanged(final int slotIndex) {
-		// Invalidate our cached weight when any contents change
-		owner.getCapability(SNSCapabilities.DYNAMIC_WEIGHT).ifPresent(DynamicWeight::invalidate);
-		super.onContentsChanged(slotIndex);
+	protected void onContentsChanged(final int slotIndex, final ItemStack oldStack, final ItemStack newStack) {
+		final DynamicWeight dynamicWeight = owner.getCapability(SNSCapabilities.DYNAMIC_WEIGHT);
+		if (dynamicWeight != null) dynamicWeight.invalidate();
+		super.onContentsChanged(slotIndex, oldStack, newStack);
 	}
 
 	/**

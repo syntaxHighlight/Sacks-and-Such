@@ -3,15 +3,13 @@ package mod.traister101.sns.util;
 import mod.traister101.sns.common.SNSItemTags;
 import mod.traister101.sns.common.capability.*;
 import mod.traister101.sns.config.entries.ContainerConfig;
-import net.dries007.tfc.common.capabilities.size.*;
+import mod.traister101.sns.config.SNSConfig;
+import net.dries007.tfc.common.component.size.*;
 
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.*;
 
-import net.minecraftforge.common.capabilities.*;
-import net.minecraftforge.common.util.*;
-import net.minecraftforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandler;
 
 import lombok.*;
 import lombok.Builder.Default;
@@ -46,7 +44,7 @@ public final class SimpleContainerType implements ContainerType {
 	TagKey<Item> preventedItems = SNSItemTags.PREVENTED_IN_ITEM_CONTAINERS;
 	@Nullable TagKey<Item> allowedItems;
 	@Default
-	CapabilityFactory capabilityFactory = (type, owner, nbt) -> standardItemContainer(type, owner, ContainerItemHandler::new);
+	BiFunction<ContainerType, ItemStack, ? extends IItemHandler> handlerFactory = ContainerItemHandler::new;
 
 	@Contract(" -> new")
 	public static SimpleContainerTypeBuilder builder() {
@@ -55,12 +53,12 @@ public final class SimpleContainerType implements ContainerType {
 
 	@Contract("_ -> new")
 	public static SimpleContainerTypeBuilder builder(final ContainerConfig config) {
-		return new SimpleContainerTypeBuilder().slotCount(config.slotCount)
-				.slotCapacity(config.slotCap)
-				.doPickup(config.doPickup)
-				.doVoiding(config.doVoiding)
-				.doInventoryInteraction(config.doInventoryTransfer)
-				.allowedSize(config.allowedSize);
+		return new SimpleContainerTypeBuilder().slotCount(() -> SNSConfig.serverValue(config.slotCount))
+				.slotCapacity(() -> SNSConfig.serverValue(config.slotCap))
+				.doPickup(() -> SNSConfig.serverValue(config.doPickup))
+				.doVoiding(() -> SNSConfig.serverValue(config.doVoiding))
+				.doInventoryInteraction(() -> SNSConfig.serverValue(config.doInventoryTransfer))
+				.allowedSize(() -> SNSConfig.serverValue(config.allowedSize));
 	}
 
 	/**
@@ -68,18 +66,6 @@ public final class SimpleContainerType implements ContainerType {
 	 * @param owner The owner stack
 	 * @param handlerFactory The item handler factory
 	 */
-	public static <H extends IItemHandler & INBTSerializable<CompoundTag>> ICapabilityProvider standardItemContainer(final ContainerType type,
-			final ItemStack owner, final BiFunction<ContainerType, ItemStack, ? extends H> handlerFactory) {
-		final var builder = CompactCapabilityDispatcher.builder();
-
-		builder.simpleSerializedCap(Lazy.of(() -> handlerFactory.apply(type, owner)), ForgeCapabilities.ITEM_HANDLER);
-		builder.simpleCap(Lazy.of(() -> new SimpleDynamicCachedWeight(owner, SimpleDynamicCachedWeight::percentageWeight)),
-				SNSCapabilities.DYNAMIC_WEIGHT);
-		builder.simpleSerializedCap(Lazy.of(SimpleItemVoider::new), SNSCapabilities.ITEM_VOIDER);
-
-		return builder.build();
-	}
-
 	@Override
 	public int slotCount() {
 		return slotCount.get();
@@ -126,8 +112,8 @@ public final class SimpleContainerType implements ContainerType {
 	}
 
 	@Override
-	public ICapabilityProvider initCapabilities(final ItemStack itemStack, final @Nullable CompoundTag nbt) {
-		return capabilityFactory.create(this, itemStack, nbt);
+	public IItemHandler createItemHandler(final ItemStack itemStack) {
+		return handlerFactory.apply(this, itemStack);
 	}
 
 	public enum ConstantSize implements Function<ItemStack, Size> {
@@ -172,14 +158,4 @@ public final class SimpleContainerType implements ContainerType {
 		}
 	}
 
-	@FunctionalInterface
-	public interface CapabilityFactory {
-
-		/**
-		 * @param type The container type the factory applies to
-		 * @param owner The owning stack
-		 * @param tag NBT of this item serialized, or null.
-		 */
-		ICapabilityProvider create(ContainerType type, ItemStack owner, @Nullable CompoundTag tag);
-	}
 }

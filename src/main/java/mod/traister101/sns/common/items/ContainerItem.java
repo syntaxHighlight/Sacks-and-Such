@@ -8,12 +8,12 @@ import mod.traister101.sns.util.*;
 import mod.traister101.sns.util.ItemSlotData.HeldSlotData;
 import mod.traister101.sns.util.SNSUtils.ToggleType;
 import mod.traister101.sns.util.items.ItemSlot;
-import net.dries007.tfc.common.capabilities.size.*;
+import net.dries007.tfc.common.component.size.*;
 import net.dries007.tfc.util.Helpers;
+import net.dries007.tfc.common.blocks.TooltipBlock;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.nbt.*;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.*;
@@ -24,9 +24,8 @@ import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 
-import net.minecraftforge.common.capabilities.*;
-import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -49,28 +48,6 @@ public class ContainerItem extends Item implements IItemSize {
 	public ContainerItem(final Properties properties, final ContainerType type) {
 		super(properties);
 		this.type = type;
-	}
-
-	private static void serializeToTag(final ItemStack itemStack, final CompoundTag compoundTag, final Capability<?> capability,
-			final String tagKey) {
-		itemStack.getCapability(capability).ifPresent(handler -> {
-			if (handler instanceof final INBTSerializable<?> serializable) {
-				compoundTag.put(tagKey, serializable.serializeNBT());
-			}
-		});
-	}
-
-	private static void deserializeFromTag(final ItemStack itemStack, final CompoundTag compoundTag, final Capability<?> capability,
-			final String tagKey) {
-		final var tag = compoundTag.get(tagKey);
-		if (tag == null) return;
-
-		itemStack.getCapability(capability).ifPresent(handler -> {
-			if (handler instanceof INBTSerializable<?>) {
-				@SuppressWarnings("unchecked") final var serializable = (INBTSerializable<Tag>) handler;
-				serializable.deserializeNBT(tag);
-			}
-		});
 	}
 
 	@Override
@@ -105,16 +82,16 @@ public class ContainerItem extends Item implements IItemSize {
 		if (clickAction != ClickAction.SECONDARY) return false;
 		if (!SNSConfig.SERVER.enableContainerInventoryInteraction.get()) return false;
 
-		final var maybeHandler = itemStack.getCapability(ForgeCapabilities.ITEM_HANDLER).resolve();
-		if (maybeHandler.isEmpty()) return false;
+		final var handler = itemStack.getCapability(Capabilities.ItemHandler.ITEM);
+		if (handler == null) return false;
 
 		// Extract items into the slot
 		if (!slot.hasItem()) {
-			for (final var handlerSlot : ItemSlot.reverseIterable(maybeHandler.get())) {
-				final var simulate = handlerSlot.extractItem(Container.LARGE_MAX_STACK_SIZE, true);
+			for (final var handlerSlot : ItemSlot.reverseIterable(handler)) {
+				final var simulate = handlerSlot.extractItem(Integer.MAX_VALUE, true);
 				if (simulate.isEmpty()) continue;
 
-				final ItemStack extracted = handlerSlot.extractItem(Container.LARGE_MAX_STACK_SIZE, false);
+				final ItemStack extracted = handlerSlot.extractItem(Integer.MAX_VALUE, false);
 				final ItemStack remainder = slot.safeInsert(extracted);
 
 				if (!remainder.isEmpty()) {
@@ -129,11 +106,11 @@ public class ContainerItem extends Item implements IItemSize {
 
 		final var slotStack = slot.getItem();
 		// We have to simulate the insertion to account for crafting result slots
-		final var simulate = ItemHandlerHelper.insertItemStacked(maybeHandler.get(), slotStack, true);
+		final var simulate = ItemHandlerHelper.insertItemStacked(handler, slotStack, true);
 		final var extracted = slot.safeTake(slotStack.getCount(), slotStack.getCount() - simulate.getCount(), player);
 		if (extracted.isEmpty()) return false;
 
-		ItemHandlerHelper.insertItemStacked(maybeHandler.get(), extracted, false);
+		ItemHandlerHelper.insertItemStacked(handler, extracted, false);
 		player.containerMenu.slotsChanged(slot.container);
 		playInsertSound(player);
 		return true;
@@ -147,15 +124,15 @@ public class ContainerItem extends Item implements IItemSize {
 		if (clickAction != ClickAction.SECONDARY) return false;
 		if (!SNSConfig.SERVER.enableContainerInventoryInteraction.get()) return false;
 
-		final var maybeHandler = itemStack.getCapability(ForgeCapabilities.ITEM_HANDLER).resolve();
-		if (maybeHandler.isEmpty()) return false;
+		final var handler = itemStack.getCapability(Capabilities.ItemHandler.ITEM);
+		if (handler == null) return false;
 
 		if (carriedStack.isEmpty()) {
-			for (final var handlerSlot : ItemSlot.reverseIterable(maybeHandler.get())) {
+			for (final var handlerSlot : ItemSlot.reverseIterable(handler)) {
 				final var current = handlerSlot.getStack();
 				if (current.isEmpty()) continue;
 
-				carriedSlot.set(handlerSlot.extractItem(Container.LARGE_MAX_STACK_SIZE, false));
+				carriedSlot.set(handlerSlot.extractItem(Integer.MAX_VALUE, false));
 				player.containerMenu.slotsChanged(slot.container);
 				playRemoveOneSound(player);
 				return true;
@@ -163,7 +140,7 @@ public class ContainerItem extends Item implements IItemSize {
 			return false;
 		}
 
-		final var remainder = ItemHandlerHelper.insertItemStacked(maybeHandler.get(), carriedStack, false);
+		final var remainder = ItemHandlerHelper.insertItemStacked(handler, carriedStack, false);
 		if (remainder.getCount() == carriedStack.getCount()) return false;
 
 		carriedSlot.set(remainder);
@@ -173,7 +150,7 @@ public class ContainerItem extends Item implements IItemSize {
 	}
 
 	@Override
-	public void appendHoverText(final ItemStack itemStack, @Nullable final Level level, final List<Component> tooltip, final TooltipFlag flagIn) {
+	public void appendHoverText(final ItemStack itemStack, final TooltipContext context, final List<Component> tooltip, final TooltipFlag flagIn) {
 		if (!Screen.hasShiftDown()) {
 			tooltip.add(Component.translatable(HOLD_SHIFT_TOOLTIP).withStyle(ChatFormatting.GRAY));
 			return;
@@ -194,7 +171,7 @@ public class ContainerItem extends Item implements IItemSize {
 
 		if (type.doesVoiding()) {
 			tooltip.add(Component.translatable(VOID_TOOLTIP,
-							SNSUtils.toggleTooltip(itemStack.getCapability(SNSCapabilities.ITEM_VOIDER).map(ItemVoider::isVoidingEnabled).orElse(false)))
+							SNSUtils.toggleTooltip(isVoidingEnabled(itemStack)))
 					.withStyle(ChatFormatting.GRAY));
 		}
 
@@ -207,9 +184,10 @@ public class ContainerItem extends Item implements IItemSize {
 	public Optional<TooltipComponent> getTooltipImage(final ItemStack itemStack) {
 		if (!SNSConfig.CLIENT.displayItemContentsAsImages.get()) return super.getTooltipImage(itemStack);
 
-		return itemStack.getCapability(ForgeCapabilities.ITEM_HANDLER).map(handler -> {
-			final int width, height;
-			final int slotCount = handler.getSlots();
+		final var handler = itemStack.getCapability(Capabilities.ItemHandler.ITEM);
+		if (handler == null) return super.getTooltipImage(itemStack);
+		final int width, height;
+		final int slotCount = handler.getSlots();
 			switch (slotCount) {
 				case 1 -> width = height = 1;
 				case 4 -> width = height = 2;
@@ -227,49 +205,21 @@ public class ContainerItem extends Item implements IItemSize {
 					height = slotCount / width;
 				}
 			}
-			return Helpers.getTooltipImage(handler, width, height, 0, slotCount - 1);
-		}).orElse(super.getTooltipImage(itemStack));
+		final List<ItemStack> contents = new ArrayList<>(slotCount);
+		for (int slot = 0; slot < slotCount; slot++) contents.add(handler.getStackInSlot(slot));
+		return Optional.of(new TooltipBlock.Instance(contents, width, height));
 	}
 
 	@Override
 	public boolean isFoil(final ItemStack itemStack) {
 		return SNSConfig.CLIENT.voidGlint.get() ?
-				itemStack.getCapability(SNSCapabilities.ITEM_VOIDER).map(ItemVoider::isVoidingEnabled).orElse(false) :
+				isVoidingEnabled(itemStack) :
 				NBTHelper.isAutoPickup(itemStack);
 	}
 
-	@Nullable
-	@Override
-	public CompoundTag getShareTag(final ItemStack itemStack) {
-		final CompoundTag shareTag = super.getShareTag(itemStack);
-		final CompoundTag compoundTag = shareTag == null ? new CompoundTag() : shareTag;
-
-		serializeToTag(itemStack, compoundTag, ForgeCapabilities.ITEM_HANDLER, CONTENTS_TAG);
-		serializeToTag(itemStack, compoundTag, SNSCapabilities.ITEM_VOIDER, VOID_SLOTS_TAG);
-
-		return compoundTag;
-	}
-
-	@Override
-	public void readShareTag(final ItemStack itemStack, @Nullable final CompoundTag compoundTag) {
-		if (compoundTag == null) {
-			super.readShareTag(itemStack, null);
-			return;
-		}
-		{
-			final var tag = compoundTag.copy();
-			tag.remove(CONTENTS_TAG);
-			tag.remove(VOID_SLOTS_TAG);
-			super.readShareTag(itemStack, tag);
-		}
-
-		deserializeFromTag(itemStack, compoundTag, ForgeCapabilities.ITEM_HANDLER, CONTENTS_TAG);
-		deserializeFromTag(itemStack, compoundTag, SNSCapabilities.ITEM_VOIDER, VOID_SLOTS_TAG);
-	}
-
-	@Override
-	public final ICapabilityProvider initCapabilities(final ItemStack itemStack, @Nullable final CompoundTag nbt) {
-		return type.initCapabilities(itemStack, nbt);
+	private static boolean isVoidingEnabled(final ItemStack itemStack) {
+		final ItemVoider itemVoider = itemStack.getCapability(SNSCapabilities.ITEM_VOIDER);
+		return itemVoider != null && itemVoider.isVoidingEnabled();
 	}
 
 	private void playRemoveOneSound(final Entity entity) {
@@ -290,8 +240,4 @@ public class ContainerItem extends Item implements IItemSize {
 		return type.weight(itemStack);
 	}
 
-	@Override
-	public int getDefaultStackSize(final ItemStack itemStack) {
-		return 1;
-	}
 }

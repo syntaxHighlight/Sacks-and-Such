@@ -3,8 +3,6 @@ package mod.traister101.sns.util.items;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 
-import net.minecraftforge.items.ItemHandlerHelper;
-
 import lombok.*;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.Range;
@@ -40,7 +38,7 @@ public final class ItemContainerSlot implements ItemSlot {
 		if (!currentStack.isEmpty()) {
 			if (currentStack.getCount() >= Math.min(currentStack.getMaxStackSize(), container.getMaxStackSize())) return insertStack;
 
-			if (!ItemHandlerHelper.canItemStacksStack(insertStack, currentStack)) return insertStack;
+			if (!ItemStack.isSameItemSameComponents(insertStack, currentStack)) return insertStack;
 
 			if (!container.canPlaceItem(slotIndex, insertStack)) return insertStack;
 

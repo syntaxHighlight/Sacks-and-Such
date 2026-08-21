@@ -22,23 +22,23 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent.RightClickBlock;
-import net.minecraftforge.eventbus.api.Event.Result;
-import net.minecraftforge.items.*;
-import net.minecraftforge.items.wrapper.PlayerMainInvWrapper;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.common.util.TriState;
+import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent.RightClickBlock;
+import net.neoforged.neoforge.items.*;
+import net.neoforged.neoforge.items.wrapper.PlayerMainInvWrapper;
 
 public final class PickupHandler {
 
 	/**
 	 * Intercept item pickups to try and place them into sacks
 	 */
-	public static void onPickupItem(final EntityItemPickupEvent event) {
+	public static void onPickupItem(final ItemEntityPickupEvent.Pre event) {
 		if (!SNSConfig.SERVER.doPickup.get()) return;
 
-		final Player player = event.getEntity();
-		final ItemEntity itemEntity = event.getItem();
+		final Player player = event.getPlayer();
+		final ItemEntity itemEntity = event.getItemEntity();
 
 		final ItemStack entityStack = itemEntity.getItem();
 		final int startCount = entityStack.getCount();
@@ -50,19 +50,20 @@ public final class PickupHandler {
 			player.containerMenu.broadcastChanges();
 			player.take(itemEntity, pickupCount);
 
-			// Update the item entity
+			// Pre permits mutating the live stack, but explicitly forbids replacing it with setItem.
 			if (itemResult.isEmpty()) {
 				itemEntity.discard();
+				entityStack.setCount(0);
+				event.setCanPickup(TriState.FALSE);
 			} else {
-				itemEntity.setItem(itemResult);
+				entityStack.setCount(itemResult.getCount());
+				event.setCanPickup(TriState.TRUE);
 			}
 
 			player.awardStat(Stats.ITEM_PICKED_UP.get(entityStack.getItem()), pickupCount);
 			player.onItemPickup(itemEntity);
 		}
 
-		event.setCanceled(itemResult.isEmpty());
-		event.setResult(0 < pickupCount ? Result.ALLOW : Result.DEFAULT);
 	}
 
 	/**
@@ -154,11 +155,11 @@ public final class PickupHandler {
 		for (final var handlerSlot : ItemSlot.iterable(itemHandler)) {
 			if (!ContainerType.canDoItemPickup(handlerSlot.getStack())) continue;
 
-			final var maybeContainerInv = handlerSlot.getStack().getCapability(ForgeCapabilities.ITEM_HANDLER).resolve();
+			final var maybeContainerInv = handlerSlot.getStack().getCapability(Capabilities.ItemHandler.ITEM);
 
-			if (maybeContainerInv.isEmpty()) continue;
+			if (maybeContainerInv == null) continue;
 
-			remainder = ItemHandlerHelper.insertItem(maybeContainerInv.get(), remainder, false);
+			remainder = ItemHandlerHelper.insertItem(maybeContainerInv, remainder, false);
 
 			if (remainder.isEmpty()) return ItemStack.EMPTY;
 		}

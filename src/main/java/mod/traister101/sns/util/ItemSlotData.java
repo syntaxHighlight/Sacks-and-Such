@@ -1,7 +1,6 @@
 package mod.traister101.sns.util;
 
-import top.theillusivec4.curios.api.CuriosApi;
-import top.theillusivec4.curios.api.type.inventory.ICurioStacksHandler;
+import mod.traister101.sns.compat.curios.CuriosUtils;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.InteractionHand;
@@ -57,6 +56,7 @@ public sealed interface ItemSlotData {
 
 		@Override
 		public ItemStack stack(final Player player) {
+			if (slotIndex < 0 || slotIndex >= player.getInventory().getContainerSize()) return ItemStack.EMPTY;
 			return player.getInventory().getItem(slotIndex);
 		}
 
@@ -76,12 +76,8 @@ public sealed interface ItemSlotData {
 
 		@Override
 		public ItemStack stack(final Player player) {
-			return CuriosApi.getCuriosInventory(player)
-					.resolve()
-					.flatMap(iCuriosItemHandler -> iCuriosItemHandler.getStacksHandler(identifier))
-					.map(ICurioStacksHandler::getStacks)
-					.map(iDynamicStackHandler -> iDynamicStackHandler.getStackInSlot(slotIndex))
-					.orElse(ItemStack.EMPTY);
+			if (!SNSUtils.isCuriosPresent() || identifier.isBlank() || slotIndex < 0) return ItemStack.EMPTY;
+			return CuriosUtils.getStack(player, identifier, slotIndex);
 		}
 
 		@Override

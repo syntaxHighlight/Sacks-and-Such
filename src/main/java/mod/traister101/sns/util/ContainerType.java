@@ -1,15 +1,13 @@
 package mod.traister101.sns.util;
 
 import mod.traister101.sns.common.items.ContainerItem;
-import net.dries007.tfc.common.capabilities.size.*;
+import net.dries007.tfc.common.component.size.*;
 
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.*;
 
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
+import net.neoforged.neoforge.items.IItemHandler;
 
-import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 
 public interface ContainerType {
@@ -106,9 +104,7 @@ public interface ContainerType {
 
 	/**
 	 * @param itemStack The {@link ItemStack}
-	 * @param nbt The {@link CompoundTag}
-	 *
-	 * @return The {@link ICapabilityProvider} for the {@link ContainerItem}s of this {@link ContainerType}
+	 * @return The item handler for the {@link ContainerItem}s of this {@link ContainerType}
 	 */
-	ICapabilityProvider initCapabilities(final ItemStack itemStack, final @Nullable CompoundTag nbt);
+	IItemHandler createItemHandler(ItemStack itemStack);
 }
