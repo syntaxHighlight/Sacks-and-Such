@@ -63,11 +63,11 @@ public abstract class AbstractHorseMixin extends Animal {
 	}
 
 	/**
-	 * @reason We need to increase the inventory size by 1 to allow for our horseshoe slot
+	 * @reason We need to increase both the horse inventory and the client screen container by one for our horseshoe slot
 	 * @author Traister101
 	 */
-	@ModifyReturnValue(method = "getInventorySize", at = @At(value = "RETURN"))
-	private int addHorseshoeSlot(final int original) {
+	@ModifyReturnValue(method = "getInventorySize(I)I", at = @At(value = "RETURN"))
+	private static int addHorseshoeSlot(final int original) {
 		return original + 1;
 	}
 
