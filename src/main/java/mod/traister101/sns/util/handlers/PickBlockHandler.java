@@ -12,13 +12,12 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.wrapper.PlayerMainInvWrapper;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.wrapper.PlayerMainInvWrapper;
 
 import lombok.experimental.UtilityClass;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 @UtilityClass
@@ -86,9 +85,8 @@ public final class PickBlockHandler {
 			stream = ItemSlot.stream(itemHandler).filter(ItemSlot.contentsMatch(s -> s.getItem() instanceof ContainerItem));
 		}
 
-		return stream.map(ItemSlot.extractCapability(ForgeCapabilities.ITEM_HANDLER))
-				.map(LazyOptional::resolve)
-				.flatMap(Optional::stream)
+		return stream.map(ItemSlot.extractCapability(Capabilities.ItemHandler.ITEM))
+				.filter(Objects::nonNull)
 				.flatMap(ItemSlot::stream)
 				.filter(slot -> ItemStack.isSameItem(slot.getStack(), stackToMatch))
 				.map(slot -> slot.extractItem(slot.getStack().getMaxStackSize(), false))

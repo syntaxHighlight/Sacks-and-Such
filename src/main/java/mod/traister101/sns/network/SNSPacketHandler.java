@@ -1,62 +1,46 @@
 package mod.traister101.sns.network;
 
-import mod.traister101.sns.SacksNSuch;
-import org.apache.commons.lang3.mutable.MutableInt;
-
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.network.*;
-import net.minecraftforge.network.simple.SimpleChannel;
-
-import java.util.function.*;
+import java.util.function.BiConsumer;
 
 public final class SNSPacketHandler {
 
-	private static final String VERSION = ModList.get().getModFileById(SacksNSuch.MODID).versionString();
-	private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(new ResourceLocation(SacksNSuch.MODID, "main"), () -> VERSION,
-			VERSION::equals, VERSION::equals);
-	private static final MutableInt ID = new MutableInt(0);
+	private static final String VERSION = "1";
 
-	public static void send(final PacketDistributor.PacketTarget target, final Object message) {
-		CHANNEL.send(target, message);
-	}
-
-	/**
-	 * Shorthand for {@code SNSPacketHandler.send(PacketDistributor.SERVER.noArg(), message);}
-	 */
-	public static void sendToServer(final Object message) {
-		send(PacketDistributor.SERVER.noArg(), message);
+	public static void sendToServer(final CustomPacketPayload message) {
+		PacketDistributor.sendToServer(message);
 	}
 
 	public static void init() {
-		// Client -> Server
-		register(ServerboundPickBlockPacket.class, ServerboundPickBlockPacket::encode, ServerboundPickBlockPacket::new,
-				ServerboundPickBlockPacket::handle);
-		register(ServerboundTogglePacket.class, ServerboundTogglePacket::encode, ServerboundTogglePacket::new, ServerboundTogglePacket::handle);
-		register(ServerboundPacketCycleSlotPacket.class, ServerboundPacketCycleSlotPacket::encode, ServerboundPacketCycleSlotPacket::new,
-				ServerboundPacketCycleSlotPacket::handle);
-		register(ServerboundToggleSlotVoidingPacket.class, ServerboundToggleSlotVoidingPacket::encode, ServerboundToggleSlotVoidingPacket::new,
-				ServerboundToggleSlotVoidingPacket::handle);
-		register(ServerboundOpenContainerPacket.class, ServerboundOpenContainerPacket::encode, ServerboundOpenContainerPacket::new,
-				ServerboundOpenContainerPacket::handle);
-		register(ServerboundToggleBootsStepUp.class, ServerboundToggleBootsStepUp::encode, ServerboundToggleBootsStepUp::new,
-				ServerboundToggleBootsStepUp::handle);
 	}
 
-	@SuppressWarnings("unused")
-	private static <T> void register(@SuppressWarnings("SameParameterValue") final Class<T> clazz, final BiConsumer<T, FriendlyByteBuf> encoder,
-			final Function<FriendlyByteBuf, T> decoder, final Consumer<T> handler) {
-		register(clazz, encoder, decoder, (packet, player) -> handler.accept(packet));
+	public static void register(final RegisterPayloadHandlersEvent event) {
+		final var registrar = event.registrar(VERSION);
+		registrar.playToServer(ServerboundPickBlockPacket.TYPE, ServerboundPickBlockPacket.STREAM_CODEC, SNSPacketHandler::handle);
+		registrar.playToServer(ServerboundTogglePacket.TYPE, ServerboundTogglePacket.STREAM_CODEC, SNSPacketHandler::handle);
+		registrar.playToServer(ServerboundPacketCycleSlotPacket.TYPE, ServerboundPacketCycleSlotPacket.STREAM_CODEC, SNSPacketHandler::handle);
+		registrar.playToServer(ServerboundToggleSlotVoidingPacket.TYPE, ServerboundToggleSlotVoidingPacket.STREAM_CODEC, SNSPacketHandler::handle);
+		registrar.playToServer(ServerboundOpenContainerPacket.TYPE, ServerboundOpenContainerPacket.STREAM_CODEC, SNSPacketHandler::handle);
+		registrar.playToServer(ServerboundToggleBootsStepUp.TYPE, ServerboundToggleBootsStepUp.STREAM_CODEC, SNSPacketHandler::handle);
 	}
 
-	private static <T> void register(final Class<T> clazz, final BiConsumer<T, FriendlyByteBuf> encoder, final Function<FriendlyByteBuf, T> decoder,
-			final BiConsumer<T, ServerPlayer> handler) {
-		CHANNEL.registerMessage(ID.getAndIncrement(), clazz, encoder, decoder, (packet, context) -> {
-			context.get().setPacketHandled(true);
-			context.get().enqueueWork(() -> handler.accept(packet, context.get().getSender()));
-		});
+	private static <T extends CustomPacketPayload & ServerboundPayload> void handle(final T payload, final IPayloadContext context) {
+		context.enqueueWork(() -> payload.handle((ServerPlayer) context.player()));
+	}
+
+	static <T> StreamCodec<RegistryFriendlyByteBuf, T> codec(final BiConsumer<T, RegistryFriendlyByteBuf> encoder,
+			final java.util.function.Function<RegistryFriendlyByteBuf, T> decoder) {
+		return StreamCodec.of((buffer, value) -> encoder.accept(value, buffer), decoder::apply);
+	}
+
+	interface ServerboundPayload {
+		void handle(ServerPlayer player);
 	}
 }

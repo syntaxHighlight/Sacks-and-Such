@@ -4,11 +4,17 @@ import mod.traister101.sns.common.capability.FoodHolder.CycleDirection;
 import mod.traister101.sns.common.capability.SNSCapabilities;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 
 import org.jetbrains.annotations.Nullable;
 
-public class ServerboundPacketCycleSlotPacket {
+public class ServerboundPacketCycleSlotPacket implements CustomPacketPayload, SNSPacketHandler.ServerboundPayload {
+	public static final Type<ServerboundPacketCycleSlotPacket> TYPE = new Type<>(mod.traister101.sns.SacksNSuch.location("cycle_slot"));
+	public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundPacketCycleSlotPacket> STREAM_CODEC =
+			SNSPacketHandler.codec((packet, buffer) -> packet.encode(buffer), ServerboundPacketCycleSlotPacket::new);
 
 	private final CycleDirection cycleDirection;
 
@@ -24,9 +30,12 @@ public class ServerboundPacketCycleSlotPacket {
 		friendlyByteBuf.writeEnum(cycleDirection);
 	}
 
-	void handle(final @Nullable ServerPlayer player) {
+	public void handle(final ServerPlayer player) {
 		if (player == null) return;
 
-		player.getMainHandItem().getCapability(SNSCapabilities.FOOD_HOLDER).ifPresent(foodHolder -> foodHolder.cycleSelected(cycleDirection));
+		final var foodHolder = player.getMainHandItem().getCapability(SNSCapabilities.FOOD_HOLDER);
+		if (foodHolder != null) foodHolder.cycleSelected(cycleDirection);
 	}
+
+	@Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
 }
