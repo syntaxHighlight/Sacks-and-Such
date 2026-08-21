@@ -10,6 +10,7 @@ neoforge = "21.1.244"
 patchouli = "1.21.1-93-NEOFORGE"
 mixin = "0.8.5"
 mixinExtras = "0.5.0"
+extendedSlotCapacity = "0.0.0-indev"
 lombok = "1.18.46"
 curios = "9.5.1+1.21.1"
 tfc = "p6g4aaMv"
@@ -20,6 +21,7 @@ tfc = { group = "maven.modrinth", name = "JaCEZUhg", version.ref = "tfc" }
 mixin = { group = "org.spongepowered", name = "mixin", version.ref = "mixin" }
 mixinExtras-common = { group = "io.github.llamalad7", name = "mixinextras-common", version.ref = "mixinExtras" }
 mixinExtras-neoforge = { group = "io.github.llamalad7", name = "mixinextras-neoforge", version.ref = "mixinExtras" }
+extendedSlotCapacity = { group = "mod.traister101", name = "Extended-Slot-Capacity-1.21.1", version.ref = "extendedSlotCapacity" }
 curios = { group = "top.theillusivec4.curios", name = "curios-neoforge", version.ref = "curios" }
 patchouli = { group = "vazkii.patchouli", name = "Patchouli", version.ref = "patchouli" }
 

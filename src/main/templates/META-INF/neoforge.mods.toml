@@ -20,6 +20,13 @@ ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.${modId}]]
+modId = "esc"
+type = "required"
+versionRange = "[0.0.0-indev,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.${modId}]]
 modId = "neoforge"
 type = "required"
 versionRange = "[21.1,)"

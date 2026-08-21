@@ -188,6 +188,12 @@ repositories {
             includeGroup("vazkii.patchouli")
         }
     }
+    githubPackage("traister101/ExtendedSlotCapacity") {
+        name = "Extended Slot Capacity"
+        content {
+            includeGroup("mod.traister101")
+        }
+    }
 }
 
 dependencies {
@@ -208,6 +214,16 @@ dependencies {
     jarJar(libs.mixinExtras.neoforge) {
         version {
             strictly(libs.versions.mixinExtras.get())
+        }
+    }
+
+    implementation(libs.extendedSlotCapacity)
+    if (!file("../ExtendedSlotCapacity").isDirectory) {
+        jarJar(libs.extendedSlotCapacity) {
+            version {
+                strictly("[${libs.versions.extendedSlotCapacity.get()},)")
+                prefer(libs.versions.extendedSlotCapacity.get())
+            }
         }
     }
 
