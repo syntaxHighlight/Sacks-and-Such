@@ -44,6 +44,10 @@ public final class PickupHandler {
 		// Without this, items the player just threw (40 tick delay) get instantly vacuumed back into sacks.
 		if (itemEntity.hasPickUpDelay()) return;
 
+		// Items thrown to a specific player can only be picked up by that player
+		final var target = itemEntity.getTarget();
+		if (target != null && !target.equals(player.getUUID())) return;
+
 		final ItemStack entityStack = itemEntity.getItem();
 		final int startCount = entityStack.getCount();
 		final ItemStack itemResult = pickupItemStack(player, entityStack);
