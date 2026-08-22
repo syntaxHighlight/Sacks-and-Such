@@ -40,6 +40,10 @@ public final class PickupHandler {
 		final Player player = event.getPlayer();
 		final ItemEntity itemEntity = event.getItemEntity();
 
+		// NeoForge fires this event before the vanilla pickup delay check, so honor the delay here.
+		// Without this, items the player just threw (40 tick delay) get instantly vacuumed back into sacks.
+		if (itemEntity.hasPickUpDelay()) return;
+
 		final ItemStack entityStack = itemEntity.getItem();
 		final int startCount = entityStack.getCount();
 		final ItemStack itemResult = pickupItemStack(player, entityStack);
