@@ -14,6 +14,9 @@
       "tag": "tfc:sewing_needles"
     }
   ],
+  "primary_ingredient": {
+    "tag": "tfc:sewing_needles"
+  },
   "remainder": {
     "modifiers": [
       {

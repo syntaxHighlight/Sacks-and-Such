@@ -63,6 +63,7 @@ public class BuiltInRecipes extends RecipeProvider {
 				.requires(SNSItems.REINFORCED_FIBER.get())
 				.requires(SNSItems.LEATHER_STRIP.get())
 				.requires(TFCTags.Items.SEWING_NEEDLES)
+				.primaryIngredient(TFCTags.Items.SEWING_NEEDLES)
 				.unlockedBy("has_leather_strip", has(SNSItems.LEATHER_STRIP.get()))
 				.unlockedBy("has_reinforced_fiber", has(SNSItems.REINFORCED_FIBER.get()))
 				.unlockedBy("has_sewing_needle", has(TFCTags.Items.SEWING_NEEDLES))

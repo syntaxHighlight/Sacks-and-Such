@@ -216,6 +216,8 @@ public abstract class CraftingRecipeBuilder<B extends CraftingRecipeBuilder<B>> 
 	public static final class ShapelessCraftingRecipeBuilder extends CraftingRecipeBuilder<ShapelessCraftingRecipeBuilder> {
 
 		private final NonNullList<Ingredient> ingredients = NonNullList.create();
+		@Nullable
+		private Ingredient primaryIngredient;
 
 		private ShapelessCraftingRecipeBuilder(final String folderName, final ItemLike result, final int count) {
 			super(folderName, result, count);
@@ -243,10 +245,31 @@ public abstract class CraftingRecipeBuilder<B extends CraftingRecipeBuilder<B>> 
 			return this;
 		}
 
+		/**
+		 * Sets the ingredient which receives the damage from {@link #damageInputs()}. Required when damageInputs is set,
+		 * since TFC's {@link AdvancedShapelessRecipe} throws if the primary ingredient is absent.
+		 */
+		public ShapelessCraftingRecipeBuilder primaryIngredient(final TagKey<Item> tag) {
+			return primaryIngredient(Ingredient.of(tag));
+		}
+
+		public ShapelessCraftingRecipeBuilder primaryIngredient(final ItemLike item) {
+			return primaryIngredient(Ingredient.of(item));
+		}
+
+		public ShapelessCraftingRecipeBuilder primaryIngredient(final Ingredient ingredient) {
+			if (primaryIngredient != null) throw new IllegalStateException("Primary ingredient is already defined");
+			primaryIngredient = ingredient;
+			return this;
+		}
+
 		@Override
 		protected void ensureValid(final ResourceLocation recipeId) {
 			super.ensureValid(recipeId);
 			if (ingredients.isEmpty()) throw new IllegalStateException("Recipe must have at least one ingredient: " + recipeId);
+			if (damageInputs && primaryIngredient == null) {
+				throw new IllegalStateException("Recipe " + recipeId + " damages inputs but has no primary ingredient");
+			}
 		}
 
 		@Override
@@ -257,7 +280,7 @@ public abstract class CraftingRecipeBuilder<B extends CraftingRecipeBuilder<B>> 
 		@Override
 		protected Recipe<?> createRecipe() {
 			if (damageInputs) {
-				return new AdvancedShapelessRecipe(ingredients, resultProvider(), damagedRemainder(), Optional.empty());
+				return new AdvancedShapelessRecipe(ingredients, resultProvider(), damagedRemainder(), Optional.ofNullable(primaryIngredient));
 			}
 			return new ShapelessRecipe(group == null ? "" : group, category, new ItemStack(result, count), ingredients);
 		}
