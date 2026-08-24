@@ -66,7 +66,7 @@ public class HorseshoesItem extends Item {
 		if (level.isClientSide) return;
 
 		if (getSteps(itemStack) > horseshoesProperties.stepsPerDamage()) {
-			if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) itemStack.hurtAndBreak(1, serverLevel, horse, item -> {});
+			itemStack.hurtAndBreak(1, horse, EquipmentSlot.FEET);
 			setSteps(itemStack, 0);
 		}
 

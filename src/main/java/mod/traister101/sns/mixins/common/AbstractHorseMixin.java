@@ -37,6 +37,33 @@ public abstract class AbstractHorseMixin extends Animal {
 	private void tickHorseshoe(final CallbackInfo ci) {
 		final ItemStack itemStack = inventory.getItem(HorseshoesItem.getHorseshoesSlot(sns$self()));
 		if (itemStack.getItem() instanceof HorseshoesItem horseshoes) horseshoes.horseshoeTick(itemStack, level(), sns$self());
+
+		final ItemStack mirrored = getHorseshoes();
+		// Our FEET slot mirrors the dedicated inventory slot, but nothing notifies us
+		// when the stack is mutated in place (e.g. breaking from durability) or when
+		// vanilla recreates the inventory. Deliberately not comparing components,
+		// they change every step taken and don't affect the applied modifiers
+		if (itemStack.getItem() != mirrored.getItem() || itemStack.getCount() != mirrored.getCount())
+			setHorseshoeEquipment(itemStack);
+	}
+
+	/**
+	 * @reason Equipping a chest recreates the inventory with more slots which leaves
+	 *         horseshoes stranded in a storage slot while their dedicated slot sits
+	 *         empty, move them back into the dedicated slot
+	 * @author Traister101
+	 */
+	@Inject(method = "createInventory", at = @At(value = "TAIL"))
+	private void migrateHorseshoes(final CallbackInfo ci) {
+		final int horseshoesSlot = HorseshoesItem.getHorseshoesSlot(sns$self());
+		if (!inventory.getItem(horseshoesSlot).isEmpty()) return;
+
+		for (int i = 0; i < horseshoesSlot; i++) {
+			if (!(inventory.getItem(i).getItem() instanceof HorseshoesItem)) continue;
+			inventory.setItem(horseshoesSlot, inventory.getItem(i));
+			inventory.setItem(i, ItemStack.EMPTY);
+			break;
+		}
 	}
 
 	/**
@@ -119,13 +146,20 @@ public abstract class AbstractHorseMixin extends Animal {
 
 	@Unique
 	private void setHorseshoes(final ItemStack itemStack) {
-		this.setItemSlot(EquipmentSlot.FEET, itemStack);
+		// Store a snapshot, sharing the instance with the inventory slot would let
+		// in-place mutations (e.g. breaking from durability) silently desync our
+		// equipment mirror from the actual slot contents
+		this.setItemSlot(EquipmentSlot.FEET, itemStack.isEmpty() ? ItemStack.EMPTY : itemStack.copy());
 		this.setDropChance(EquipmentSlot.FEET, 0);
 	}
 
 	@Unique
 	private void setHorseshoeEquipment(final ItemStack itemStack) {
 		final var lastHorseshoes = getHorseshoes();
+		// Container notifications fire for every slot in the inventory, bail out
+		// when the horseshoes didn't actually change to avoid needless work
+		if (ItemStack.matches(lastHorseshoes, itemStack)) return;
+
 		setHorseshoes(itemStack);
 		if (!level().isClientSide) {
 			if (lastHorseshoes.getItem() instanceof HorseshoesItem horseshoes) {
