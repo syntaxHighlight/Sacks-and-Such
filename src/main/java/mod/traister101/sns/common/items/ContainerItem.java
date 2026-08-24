@@ -10,7 +10,6 @@ import mod.traister101.sns.util.SNSUtils.ToggleType;
 import mod.traister101.sns.util.items.ItemSlot;
 import net.dries007.tfc.common.component.size.*;
 import net.dries007.tfc.util.Helpers;
-import net.dries007.tfc.common.blocks.TooltipBlock;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
@@ -204,9 +203,7 @@ public class ContainerItem extends Item implements IItemSize {
 					height = Math.ceilDiv(slotCount, width);
 				}
 			}
-		final List<ItemStack> contents = new ArrayList<>(slotCount);
-		for (int slot = 0; slot < slotCount; slot++) contents.add(handler.getStackInSlot(slot));
-		return TooltipBlock.buildInventoryTooltip(contents, width, height);
+		return ContainerTooltip.getTooltipImage(handler, width, height);
 	}
 
 	@Override

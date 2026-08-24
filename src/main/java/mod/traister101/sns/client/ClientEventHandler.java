@@ -37,6 +37,7 @@ public final class ClientEventHandler {
 
 	private static void onRegisterClientTooltip(final RegisterClientTooltipComponentFactoriesEvent event) {
 		event.register(LunchboxTooltip.class, ClientLunchboxTooltip::new);
+		event.register(ContainerTooltip.class, ClientContainerTooltip::new);
 	}
 
 	private static void registerKeyBindings(final RegisterKeyMappingsEvent event) {

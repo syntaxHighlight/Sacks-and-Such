@@ -254,6 +254,14 @@ idea {
 tasks {
     jar {
         from(sourceSets["datagen"].output)
+        from(rootProject.file("LICENSE")) {
+            into("META-INF")
+            rename { "sns_LICENSE" }
+        }
+        from(rootProject.file("THIRD_PARTY_NOTICES.md")) {
+            into("META-INF")
+            rename { "sns_THIRD_PARTY_NOTICES.md" }
+        }
         manifest {
             attributes["Specification-Title"] = modName
             attributes["Specification-Vendor"] = "traister101"
