@@ -23,6 +23,13 @@ tfc.json
 *.launch
 bin/
 
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Local composite-build dependencies used by release CI
+.deps/
+
 # Python
 venv/
 __pycache__/

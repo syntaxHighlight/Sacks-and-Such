@@ -1,14 +1,14 @@
 modLoader = "javafml"
 loaderVersion = "[4,)"
 license = "MIT"
-issueTrackerURL = "https://github.com/Traister101/Sacks-and-Such/issues"
+issueTrackerURL = "https://github.com/syntaxHighlight/Sacks-and-Such/issues"
 
 [[mods]]
 modId = "${modId}"
 version = "${modVersion}"
 displayName = "${modName}"
 logoFile = "icon.png"
-authors = "Traister101"
+authors = "Traister101; 1.21.1 port maintained by syntaxHighlight"
 credits = "Majority of art assets and models by Alekiponi, Boots assets by coachthesexprime. Buckle, Mob Net and Lunchbox assets created by bloodstar962"
 description = '''An addon for TFC focusing on bringing vessel like handheld containers for all your adventuring needs'''
 

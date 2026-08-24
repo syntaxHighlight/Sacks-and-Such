@@ -1,4 +1,4 @@
-name: Publish on GitHub, Curseforge and Modrinth
+name: Publish on GitHub and CurseForge
 
 on:
   push:
@@ -29,7 +29,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           result-encoding: string
           script: |
-            let version = '${{ steps.version.outputs.result }}';
+            let version = '${{ steps.version_number.outputs.result }}';
             return version.includes('alpha') ? 'alpha' : (version.includes('beta') ? 'beta' : 'release');
 
   main:
@@ -42,16 +42,24 @@ jobs:
     env:
       VERSION: ${{ needs.version.outputs.version_number }}
       VERSION_TYPE: ${{ needs.version.outputs.version_type }}
+      EXTENDED_SLOT_CAPACITY_DIR: .deps/ExtendedSlotCapacity
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Checkout Extended Slot Capacity
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/ExtendedSlotCapacity
+          ref: ${{ vars.EXTENDED_SLOT_CAPACITY_REF || 'port/neoforge-1.21.1' }}
+          path: .deps/ExtendedSlotCapacity
+
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'adopt'
+          java-version: '21'
+          distribution: 'temurin'
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -68,31 +76,34 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish (CurseForge/Modrinth/GitHub)
-        uses: Kir-Antipov/mc-publish@v3
-        with:
-          modrinth-id: PhnM3Lkv
-          modrinth-token: ${{ secrets.MODRINTH_API_KEY }}
+      - name: Validate CurseForge configuration
+        env:
+          CURSEFORGE_PROJECT_ID: ${{ vars.CURSEFORGE_PROJECT_ID }}
+          CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
+        run: |
+          test -n "$CURSEFORGE_PROJECT_ID" || { echo "Missing repository variable CURSEFORGE_PROJECT_ID"; exit 1; }
+          test -n "$CURSEFORGE_API_KEY" || { echo "Missing repository secret CURSEFORGE_API_KEY"; exit 1; }
 
-          curseforge-id: 695822
+      - name: Publish (CurseForge/GitHub)
+        uses: Kira-NT/mc-publish@v3
+        with:
+          curseforge-id: ${{ vars.CURSEFORGE_PROJECT_ID }}
           curseforge-token: ${{ secrets.CURSEFORGE_API_KEY }}
 
-          github-tag: ${{ github.ref }}
-          github-draft: true
-          github-prerelease: false
+          github-tag: ${{ github.ref_name }}
+          github-draft: false
+          github-prerelease: ${{ env.VERSION_TYPE != 'release' }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-          name: "Sacks 'N Such-1.20.1-${{ env.VERSION }}"
+          name: "Sacks 'N Such-1.21.1-${{ env.VERSION }}"
           version: "${{ env.VERSION }}"
           version-type: "${{ env.VERSION_TYPE }}"
 
           files: |
             build/libs/*.jar
 
-          loaders: |
-            forge
-            neoforge
+          loaders: neoforge
 
-          game-versions: "1.20.1"
-          java: 17
+          game-versions: "1.21.1"
+          java: 21
           changelog-file: CHANGELOG.md

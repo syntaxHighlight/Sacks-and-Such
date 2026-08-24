@@ -8,7 +8,7 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
-val localExtendedSlotCapacity = file("../ExtendedSlotCapacity")
+val localExtendedSlotCapacity = System.getenv("EXTENDED_SLOT_CAPACITY_DIR")?.let(::file) ?: file("../ExtendedSlotCapacity")
 if (localExtendedSlotCapacity.isDirectory) {
     includeBuild(localExtendedSlotCapacity) {
         dependencySubstitution {
