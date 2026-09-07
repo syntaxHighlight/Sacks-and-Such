@@ -172,7 +172,10 @@ public final class AdvancedCraftingRecipeBuilder implements RecipeBuilder {
 			}
 		}
 		if (!unused.isEmpty()) throw new IllegalStateException("Unused symbols in " + recipeId + ": " + unused);
-		if (inputRow >= rows.size() || inputColumn >= rows.get(inputRow).length()) {
+		if (inputRow < 0 || inputColumn < 0) {
+			throw new IllegalStateException("Primary input is not defined for " + recipeId + ", use inputItem(symbol, row, column)");
+		}
+		if (inputRow >= rows.size() || inputColumn >= rows.get(inputRow).length() || rows.get(inputRow).charAt(inputColumn) == ' ') {
 			throw new IllegalStateException("Primary input is outside recipe pattern " + recipeId);
 		}
 	}

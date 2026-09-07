@@ -141,6 +141,8 @@ public abstract class CraftingRecipeBuilder<B extends CraftingRecipeBuilder<B>> 
 
 		private final List<String> rows = Lists.newArrayList();
 		private final Map<Character, Ingredient> key = Maps.newLinkedHashMap();
+		private int inputRow = -1;
+		private int inputColumn = -1;
 		private boolean showNotification = true;
 
 		private ShapedCraftingRecipeBuilder(final String folderName, final ItemLike result, final int count) {
@@ -161,6 +163,26 @@ public abstract class CraftingRecipeBuilder<B extends CraftingRecipeBuilder<B>> 
 				throw new IllegalArgumentException("Symbol '" + symbol + "' is already defined");
 			}
 			return this;
+		}
+
+		/**
+		 * Sets the ingredient at the given pattern position as the primary input, the item which receives the damage
+		 * from {@link #damageInputs()}. Required when damageInputs is set, since TFC's {@link AdvancedShapedRecipe}
+		 * treats {@code input_row}/{@code input_column} as pattern coordinates and throws out of bounds otherwise.
+		 */
+		public ShapedCraftingRecipeBuilder inputItem(final Character symbol, final TagKey<Item> tag, final int row, final int column) {
+			return inputItem(symbol, Ingredient.of(tag), row, column);
+		}
+
+		public ShapedCraftingRecipeBuilder inputItem(final Character symbol, final ItemLike item, final int row, final int column) {
+			return inputItem(symbol, Ingredient.of(item), row, column);
+		}
+
+		public ShapedCraftingRecipeBuilder inputItem(final Character symbol, final Ingredient ingredient, final int row, final int column) {
+			if (inputRow >= 0 || inputColumn >= 0) throw new IllegalStateException("Primary input is already defined");
+			inputRow = row;
+			inputColumn = column;
+			return define(symbol, ingredient);
 		}
 
 		public ShapedCraftingRecipeBuilder pattern(final String pattern) {
@@ -196,6 +218,14 @@ public abstract class CraftingRecipeBuilder<B extends CraftingRecipeBuilder<B>> 
 				}
 			}
 			if (!unused.isEmpty()) throw new IllegalStateException("Unused symbols in " + recipeId + ": " + unused);
+			if (damageInputs) {
+				if (inputRow < 0 || inputColumn < 0) {
+					throw new IllegalStateException("Recipe " + recipeId + " damages inputs but has no primary input position, use inputItem(symbol, row, column)");
+				}
+				if (inputRow >= rows.size() || inputColumn >= rows.get(inputRow).length() || rows.get(inputRow).charAt(inputColumn) == ' ') {
+					throw new IllegalStateException("Primary input is outside recipe pattern " + recipeId);
+				}
+			}
 		}
 
 		@Override
@@ -207,7 +237,7 @@ public abstract class CraftingRecipeBuilder<B extends CraftingRecipeBuilder<B>> 
 		protected Recipe<?> createRecipe() {
 			final ShapedRecipePattern pattern = ShapedRecipePattern.of(key, rows);
 			if (damageInputs) {
-				return new AdvancedShapedRecipe(pattern, showNotification, resultProvider(), damagedRemainder(), -1, -1);
+				return new AdvancedShapedRecipe(pattern, showNotification, resultProvider(), damagedRemainder(), inputRow, inputColumn);
 			}
 			return new ShapedRecipe(group == null ? "" : group, category, pattern, new ItemStack(result, count), showNotification);
 		}
